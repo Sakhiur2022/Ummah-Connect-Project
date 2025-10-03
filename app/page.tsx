@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AnimatedBackground } from "@/components/animated-background"
-import { AudioVisualizer } from "@/components/audio-visualizer"
 import { CrescentIcon } from "@/components/crescent-icon"
 import Link from "next/link"
 
@@ -19,7 +18,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [audioData, setAudioData] = useState<{ frequency: number; amplitude: number; beat: boolean } | undefined>()
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -47,43 +45,19 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      <AnimatedBackground audioData={audioData} theme="islamic" backgroundImage="/images/islamic-night-scene.png" />
+      <AnimatedBackground theme="islamic" backgroundImage="/images/islamic-night-scene.png" />
 
       <div className="absolute top-20 left-20 animate-float">
-        <div
-          className="w-4 h-4 bg-amber-400 rounded-full animate-glow opacity-60 shadow-lg shadow-amber-400/50 transition-all duration-300"
-          style={{
-            transform: audioData?.beat ? "scale(1.5)" : "scale(1)",
-            opacity: audioData ? 0.6 + audioData.amplitude * 0.4 : 0.6,
-          }}
-        />
+        <div className="w-4 h-4 bg-amber-400 rounded-full animate-glow opacity-60 shadow-lg shadow-amber-400/50" />
       </div>
       <div className="absolute top-40 right-32 animate-float" style={{ animationDelay: "1s" }}>
-        <div
-          className="w-3 h-3 bg-yellow-300 rounded-full animate-twinkle opacity-40 shadow-md shadow-yellow-300/40 transition-all duration-300"
-          style={{
-            transform: audioData?.beat ? "scale(1.3)" : "scale(1)",
-            opacity: audioData ? 0.4 + audioData.amplitude * 0.3 : 0.4,
-          }}
-        />
+        <div className="w-3 h-3 bg-yellow-300 rounded-full animate-twinkle opacity-40 shadow-md shadow-yellow-300/40" />
       </div>
       <div className="absolute bottom-32 left-16 animate-float" style={{ animationDelay: "2s" }}>
-        <div
-          className="w-2 h-2 bg-amber-400 rounded-full animate-glow opacity-50 shadow-sm shadow-amber-400/50 transition-all duration-300"
-          style={{
-            transform: audioData?.beat ? "scale(1.4)" : "scale(1)",
-            opacity: audioData ? 0.5 + audioData.amplitude * 0.3 : 0.5,
-          }}
-        />
+        <div className="w-2 h-2 bg-amber-400 rounded-full animate-glow opacity-50 shadow-sm shadow-amber-400/50" />
       </div>
       <div className="absolute top-60 left-1/4 animate-float" style={{ animationDelay: "0.5s" }}>
-        <div
-          className="w-3 h-3 bg-yellow-300 rounded-full animate-twinkle opacity-30 shadow-md shadow-yellow-300/30 transition-all duration-300"
-          style={{
-            transform: audioData?.beat ? "scale(1.2)" : "scale(1)",
-            opacity: audioData ? 0.3 + audioData.amplitude * 0.4 : 0.3,
-          }}
-        />
+        <div className="w-3 h-3 bg-yellow-300 rounded-full animate-twinkle opacity-30 shadow-md shadow-yellow-300/30" />
       </div>
 
       <div className="flex min-h-screen w-full items-center justify-center p-6 md:p-10 relative z-20">
@@ -93,45 +67,17 @@ export default function LoginPage() {
             <div className="text-center space-y-4">
               <div className="flex justify-center">
                 <div className="relative">
-                  <CrescentIcon
-                    className="w-16 h-16 text-amber-400 animate-glow drop-shadow-lg transition-all duration-300"
-                    style={{
-                      transform: audioData?.beat ? "scale(1.1)" : "scale(1)",
-                      filter: audioData ? `brightness(${1 + audioData.amplitude * 0.5})` : "brightness(1)",
-                    }}
-                  />
-                  <div
-                    className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-300 rounded-full animate-twinkle shadow-lg shadow-yellow-300/50 transition-all duration-300"
-                    style={{
-                      transform: audioData?.beat ? "scale(1.3)" : "scale(1)",
-                      opacity: audioData ? 0.8 + audioData.amplitude * 0.2 : 0.8,
-                    }}
-                  />
+                  <CrescentIcon className="w-16 h-16 text-amber-400 animate-glow drop-shadow-lg" />
+                  <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-300 rounded-full animate-twinkle shadow-lg shadow-yellow-300/50" />
                 </div>
               </div>
               <div className="space-y-2">
-                <h1
-                  className="text-4xl font-bold text-balance text-amber-400 drop-shadow-lg transition-all duration-300"
-                  style={{
-                    textShadow: audioData?.beat ? "0 0 20px rgba(251, 191, 36, 0.8)" : "0 4px 6px rgba(0, 0, 0, 0.1)",
-                    transform: audioData?.beat ? "scale(1.02)" : "scale(1)",
-                  }}
-                >
-                  Ummah Connect
-                </h1>
+                <h1 className="text-4xl font-bold text-balance text-amber-400 drop-shadow-lg">Ummah Connect</h1>
                 <p className="text-slate-200 text-pretty drop-shadow-sm">{"Connecting hearts across the Ummah"}</p>
               </div>
             </div>
 
-            <Card
-              className="backdrop-blur-md bg-slate-900/60 border-slate-700/50 shadow-2xl shadow-slate-900/50 transition-all duration-300"
-              style={{
-                backdropFilter: audioData ? `blur(${12 + audioData.amplitude * 4}px)` : "blur(12px)",
-                boxShadow: audioData?.beat
-                  ? "0 25px 50px -12px rgba(0, 0, 0, 0.8)"
-                  : "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
-              }}
-            >
+            <Card className="backdrop-blur-md bg-slate-900/60 border-slate-700/50 shadow-2xl shadow-slate-900/50">
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl text-center text-slate-100">Welcome Back</CardTitle>
                 <CardDescription className="text-center text-slate-300">
@@ -214,8 +160,6 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-
-      <AudioVisualizer audioSrc="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Love%20and%20Life%20%28Slowed%20%2B%20Echo%29%20by%20Baraa%20Masoud-ibe1Ere18rvPrY76MzlfxYceVSeyAh.mp3" onAudioData={setAudioData} />
     </div>
   )
 }
