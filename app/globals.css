@@ -1,0 +1,228 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Updated color scheme for Islamic theme with warm golds and deep blues */
+  --background: oklch(0.08 0.02 240); /* Deep night blue */
+  --foreground: oklch(0.95 0.01 60); /* Warm white */
+  --card: oklch(0.12 0.03 240); /* Slightly lighter night blue */
+  --card-foreground: oklch(0.95 0.01 60);
+  --popover: oklch(0.12 0.03 240);
+  --popover-foreground: oklch(0.95 0.01 60);
+  --primary: oklch(0.75 0.15 45); /* Warm golden */
+  --primary-foreground: oklch(0.08 0.02 240);
+  --secondary: oklch(0.18 0.04 240); /* Muted blue */
+  --secondary-foreground: oklch(0.95 0.01 60);
+  --muted: oklch(0.15 0.03 240);
+  --muted-foreground: oklch(0.65 0.02 60);
+  --accent: oklch(0.65 0.12 35); /* Softer gold accent */
+  --accent-foreground: oklch(0.08 0.02 240);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.95 0.01 60);
+  --border: oklch(0.25 0.04 240);
+  --input: oklch(0.18 0.04 240);
+  --ring: oklch(0.75 0.15 45);
+  --chart-1: oklch(0.75 0.15 45);
+  --chart-2: oklch(0.65 0.12 35);
+  --chart-3: oklch(0.55 0.1 25);
+  --chart-4: oklch(0.45 0.08 15);
+  --chart-5: oklch(0.35 0.06 5);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.12 0.03 240);
+  --sidebar-foreground: oklch(0.95 0.01 60);
+  --sidebar-primary: oklch(0.75 0.15 45);
+  --sidebar-primary-foreground: oklch(0.08 0.02 240);
+  --sidebar-accent: oklch(0.18 0.04 240);
+  --sidebar-accent-foreground: oklch(0.95 0.01 60);
+  --sidebar-border: oklch(0.25 0.04 240);
+  --sidebar-ring: oklch(0.75 0.15 45);
+}
+
+.dark {
+  --background: oklch(0.08 0.02 240);
+  --foreground: oklch(0.95 0.01 60);
+  --card: oklch(0.12 0.03 240);
+  --card-foreground: oklch(0.95 0.01 60);
+  --popover: oklch(0.12 0.03 240);
+  --popover-foreground: oklch(0.95 0.01 60);
+  --primary: oklch(0.75 0.15 45);
+  --primary-foreground: oklch(0.08 0.02 240);
+  --secondary: oklch(0.18 0.04 240);
+  --secondary-foreground: oklch(0.95 0.01 60);
+  --muted: oklch(0.15 0.03 240);
+  --muted-foreground: oklch(0.65 0.02 60);
+  --accent: oklch(0.65 0.12 35);
+  --accent-foreground: oklch(0.08 0.02 240);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.95 0.01 60);
+  --border: oklch(0.25 0.04 240);
+  --input: oklch(0.18 0.04 240);
+  --ring: oklch(0.75 0.15 45);
+  --chart-1: oklch(0.75 0.15 45);
+  --chart-2: oklch(0.65 0.12 35);
+  --chart-3: oklch(0.55 0.1 25);
+  --chart-4: oklch(0.45 0.08 15);
+  --chart-5: oklch(0.35 0.06 5);
+  --sidebar: oklch(0.12 0.03 240);
+  --sidebar-foreground: oklch(0.95 0.01 60);
+  --sidebar-primary: oklch(0.75 0.15 45);
+  --sidebar-primary-foreground: oklch(0.08 0.02 240);
+  --sidebar-accent: oklch(0.18 0.04 240);
+  --sidebar-accent-foreground: oklch(0.95 0.01 60);
+  --sidebar-border: oklch(0.25 0.04 240);
+  --sidebar-ring: oklch(0.75 0.15 45);
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Added custom animations for Islamic elements */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.animate-twinkle {
+  animation: twinkle 1.5s ease-in-out infinite;
+}
+
+/* Added audio visualizer slider styles */
+.slider {
+  background: linear-gradient(to right, var(--primary) 0%, var(--primary) 50%, var(--border) 50%, var(--border) 100%);
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 8px var(--primary);
+}
+
+.slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 8px var(--primary);
+}
+
+/* Audio-reactive pulse animation */
+@keyframes audioPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+.animate-audio-pulse {
+  animation: audioPulse 0.3s ease-out;
+}
