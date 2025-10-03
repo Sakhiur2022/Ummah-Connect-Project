@@ -8,7 +8,7 @@ import { Suspense } from "react"
 export const metadata: Metadata = {
   title: "Ummah Connect",
   description: "Emotion Based Islamic Social Media",
-  generator: "v0.app",
+    generator: 'v0.app'
 }
 
 export default function RootLayout({

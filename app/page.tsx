@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AnimatedBackground } from "@/components/animated-background"
 import { CrescentIcon } from "@/components/crescent-icon"
+import { useAudio } from "@/lib/audio-context"
 import Link from "next/link"
 
 export default function LoginPage() {
@@ -19,6 +20,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { audioData } = useAudio()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,7 +47,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      <AnimatedBackground theme="islamic" backgroundImage="/images/islamic-night-scene.png" />
+      <AnimatedBackground theme="islamic" backgroundImage="/images/islamic-night-scene.png" audioData={audioData} />
 
       <div className="absolute top-20 left-20 animate-float">
         <div className="w-4 h-4 bg-amber-400 rounded-full animate-glow opacity-60 shadow-lg shadow-amber-400/50" />
