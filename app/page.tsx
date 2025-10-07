@@ -140,16 +140,26 @@ export default function LoginPage() {
                     )}
                   </Button>
 
-                  <div className="text-center">
-                    <p className="text-sm text-slate-300">
-                      {"Don't have an account? "}
+                  <div className="space-y-3">
+                    <div className="text-center">
                       <Link
-                        href="/auth/sign-up"
-                        className="text-amber-400 hover:text-amber-300 underline underline-offset-4 transition-colors"
+                        href="/auth/forgot-password"
+                        className="text-sm text-amber-400 hover:text-amber-300 underline underline-offset-4 transition-colors"
                       >
-                        Create one
+                        Forgot your password?
                       </Link>
-                    </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-slate-300">
+                        {"Don't have an account? "}
+                        <Link
+                          href="/auth/sign-up"
+                          className="text-amber-400 hover:text-amber-300 underline underline-offset-4 transition-colors"
+                        >
+                          Create one
+                        </Link>
+                      </p>
+                    </div>
                   </div>
                 </form>
               </CardContent>

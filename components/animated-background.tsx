@@ -4,9 +4,9 @@ import { useEffect, useRef } from "react"
 import * as THREE from "three"
 
 interface AnimatedBackgroundProps {
-  backgroundImage?: string // Made background image configurable
+  backgroundImage?: string
   audioData?: { frequency: number; amplitude: number; beat: boolean }
-  theme?: "islamic" | "modern" | "space" // Added theme support for different styles
+  theme?: "islamic" | "modern" | "space"
   className?: string
 }
 
@@ -21,10 +21,12 @@ export function AnimatedBackground({
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
   const animationIdRef = useRef<number | null>(null)
   const starsRef = useRef<THREE.Points | null>(null)
-  const moonRef = useRef<THREE.Mesh | null>(null)
+  const backgroundStarsRef = useRef<THREE.Points | null>(null)
+  const orbsRef = useRef<THREE.Group | null>(null)
   const particlesRef = useRef<THREE.Points | null>(null)
-  const beatIntensityRef = useRef(0) // Use ref instead of state to prevent re-renders
+  const beatIntensityRef = useRef(0)
   const audioDataRef = useRef(audioData)
+  const timeRef = useRef(0)
 
   useEffect(() => {
     audioDataRef.current = audioData
@@ -33,7 +35,6 @@ export function AnimatedBackground({
   useEffect(() => {
     if (!mountRef.current) return
 
-    // Scene setup
     const scene = new THREE.Scene()
     sceneRef.current = scene
 
@@ -48,36 +49,53 @@ export function AnimatedBackground({
     const themeConfig = {
       islamic: {
         starColor: 0xffd700,
-        moonColor: 0xffd700,
-        particleColor: 0xffa500,
-        starCount: 1000,
-        particleCount: 50,
+        particleColor: 0xffcc66,
+        starCount: 1500,
+        particleCount: 15,
       },
       modern: {
         starColor: 0x00ffff,
-        moonColor: 0x0080ff,
-        particleColor: 0x00ff80,
+        particleColor: 0x00ffaa,
         starCount: 800,
         particleCount: 30,
       },
       space: {
         starColor: 0xffffff,
-        moonColor: 0xcccccc,
-        particleColor: 0x8080ff,
+        particleColor: 0xaaaaff,
         starCount: 1500,
-        particleCount: 100,
+        particleCount: 10,
       },
     }
 
     const config = themeConfig[theme]
 
-    // Create starfield
+    const backgroundStarsGeometry = new THREE.BufferGeometry()
+    const backgroundStarsMaterial = new THREE.PointsMaterial({
+      color: config.starColor,
+      size: 1,
+      transparent: true,
+      opacity: 0.3,
+    })
+
+    const backgroundStarsVertices = []
+    for (let i = 0; i < config.starCount * 2; i++) {
+      const x = (Math.random() - 0.5) * 3000
+      const y = (Math.random() - 0.5) * 3000
+      const z = (Math.random() - 0.5) * 3000 - 500
+      backgroundStarsVertices.push(x, y, z)
+    }
+
+    backgroundStarsGeometry.setAttribute("position", new THREE.Float32BufferAttribute(backgroundStarsVertices, 3))
+    const backgroundStars = new THREE.Points(backgroundStarsGeometry, backgroundStarsMaterial)
+    backgroundStarsRef.current = backgroundStars
+    scene.add(backgroundStars)
+
     const starsGeometry = new THREE.BufferGeometry()
     const starsMaterial = new THREE.PointsMaterial({
       color: config.starColor,
       size: 2,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.6,
     })
 
     const starsVertices = []
@@ -93,48 +111,36 @@ export function AnimatedBackground({
     starsRef.current = stars
     scene.add(stars)
 
-    // Create moon/focal element
-    const moonGeometry =
-      theme === "islamic"
-        ? new THREE.RingGeometry(15, 25, 0, Math.PI * 1.5) // Crescent for Islamic theme
-        : new THREE.SphereGeometry(20, 32, 32) // Sphere for other themes
-    const moonMaterial = new THREE.MeshBasicMaterial({
-      color: config.moonColor,
-      transparent: true,
-      opacity: 0.9,
-      side: THREE.DoubleSide,
-    })
-    const moon = new THREE.Mesh(moonGeometry, moonMaterial)
-    moon.position.set(-100, 100, -200)
-    moonRef.current = moon
-    scene.add(moon)
+   
 
-    // Create floating particles
     const particlesGeometry = new THREE.BufferGeometry()
     const particlesMaterial = new THREE.PointsMaterial({
       color: config.particleColor,
-      size: 3,
+      size: 4,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.5,
       blending: THREE.AdditiveBlending,
     })
 
     const particlesVertices = []
+    const particleVelocities = []
     for (let i = 0; i < config.particleCount; i++) {
-      const x = (Math.random() - 0.5) * 400
-      const y = (Math.random() - 0.5) * 400
-      const z = (Math.random() - 0.5) * 400
+      const x = (Math.random() - 0.5) * 500
+      const y = (Math.random() - 0.5) * 500
+      const z = (Math.random() - 0.5) * 500
       particlesVertices.push(x, y, z)
+
+      particleVelocities.push((Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5)
     }
 
     particlesGeometry.setAttribute("position", new THREE.Float32BufferAttribute(particlesVertices, 3))
+    particlesGeometry.setAttribute("velocity", new THREE.Float32BufferAttribute(particleVelocities, 3))
     const particles = new THREE.Points(particlesGeometry, particlesMaterial)
     particlesRef.current = particles
     scene.add(particles)
 
     camera.position.z = 100
 
-    // Animation loop
     const animate = () => {
       animationIdRef.current = requestAnimationFrame(animate)
 
@@ -143,32 +149,69 @@ export function AnimatedBackground({
       const frequency = currentAudioData?.frequency || 0
       const beat = currentAudioData?.beat || false
 
-      // Beat-responsive effects using ref to prevent re-renders
+      timeRef.current += 0.01
+
       if (beat) {
         beatIntensityRef.current = 1
       } else {
         beatIntensityRef.current = Math.max(0, beatIntensityRef.current - 0.05)
       }
 
-      // Audio-reactive star rotation
+      if (backgroundStarsRef.current) {
+        backgroundStarsRef.current.rotation.y += 0.0002
+        backgroundStarsRef.current.rotation.x += 0.0001
+      }
+
       if (starsRef.current) {
         starsRef.current.rotation.y += 0.0005 + amplitude * 0.002
-        starsRef.current.material.opacity = 0.6 + amplitude * 0.4
+        starsRef.current.rotation.z += 0.0003
+        starsRef.current.material.opacity = 0.5 + amplitude * 0.4 + Math.sin(timeRef.current * 2) * 0.1
       }
 
-      // Audio-reactive moon glow
-      if (moonRef.current) {
-        const baseOpacity = 0.8 + Math.sin(Date.now() * 0.001) * 0.2
-        moonRef.current.material.opacity = baseOpacity + amplitude * 0.3
-        moonRef.current.scale.setScalar(1 + beatIntensityRef.current * 0.2)
+      if (orbsRef.current) {
+        orbsRef.current.children.forEach((orb, index) => {
+          const mesh = orb as THREE.Mesh
+          const userData = mesh.userData
+
+          const floatX = Math.sin(timeRef.current * userData.speed + userData.offset) * 30
+          const floatY = Math.cos(timeRef.current * userData.speed * 0.7 + userData.offset) * 40
+          const floatZ = Math.sin(timeRef.current * userData.speed * 0.5 + userData.offset) * 20
+
+          mesh.position.x = userData.initialX + floatX + amplitude * 20
+          mesh.position.y = userData.initialY + floatY + amplitude * 15
+          mesh.position.z = userData.initialZ + floatZ
+
+          const baseScale = 1 + Math.sin(timeRef.current * 2 + index) * 0.2
+          mesh.scale.setScalar(baseScale + beatIntensityRef.current * 0.4 + amplitude * 0.3)
+
+          const material = mesh.material as THREE.MeshBasicMaterial
+          material.opacity = 0.4 + amplitude * 0.4 + beatIntensityRef.current * 0.2
+
+          mesh.rotation.x += 0.005
+          mesh.rotation.y += 0.003
+        })
+
+        orbsRef.current.rotation.y += 0.0003 + frequency * 0.0001
       }
 
-      // Audio-reactive particles
       if (particlesRef.current) {
-        particlesRef.current.rotation.y += 0.001 + frequency * 0.0001
-        particlesRef.current.rotation.x += 0.0005 + amplitude * 0.001
-        particlesRef.current.material.opacity = 0.6 + amplitude * 0.4
-        particlesRef.current.material.size = 3 + beatIntensityRef.current * 2
+        const positions = particlesRef.current.geometry.attributes.position.array as Float32Array
+        const velocities = particlesRef.current.geometry.attributes.velocity.array as Float32Array
+
+        for (let i = 0; i < positions.length; i += 3) {
+          positions[i] += velocities[i] * (1 + amplitude * 2)
+          positions[i + 1] += velocities[i + 1] * (1 + amplitude * 2)
+          positions[i + 2] += velocities[i + 2] * (1 + amplitude * 2)
+
+          if (Math.abs(positions[i]) > 250) positions[i] *= -0.9
+          if (Math.abs(positions[i + 1]) > 250) positions[i + 1] *= -0.9
+          if (Math.abs(positions[i + 2]) > 250) positions[i + 2] *= -0.9
+        }
+
+        particlesRef.current.geometry.attributes.position.needsUpdate = true
+        particlesRef.current.rotation.y += 0.001 + frequency * 0.0002
+        particlesRef.current.material.opacity = 0.5 + amplitude * 0.4
+        particlesRef.current.material.size = 4 + beatIntensityRef.current * 3 + amplitude * 2
       }
 
       renderer.render(scene, camera)
@@ -176,7 +219,6 @@ export function AnimatedBackground({
 
     animate()
 
-    // Handle resize
     const handleResize = () => {
       if (!camera || !renderer) return
       camera.aspect = window.innerWidth / window.innerHeight
@@ -186,7 +228,6 @@ export function AnimatedBackground({
 
     window.addEventListener("resize", handleResize)
 
-    // Cleanup
     return () => {
       window.removeEventListener("resize", handleResize)
       if (animationIdRef.current) {
@@ -197,7 +238,7 @@ export function AnimatedBackground({
       }
       renderer.dispose()
     }
-  }, [theme]) // Only depend on theme, not audioData to prevent re-renders
+  }, [theme])
 
   return (
     <div className={className}>

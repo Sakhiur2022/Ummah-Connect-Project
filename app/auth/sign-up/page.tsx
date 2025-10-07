@@ -9,10 +9,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AnimatedBackground } from "@/components/animated-background"
-import { AudioVisualizer } from "@/components/audio-visualizer"
 import { CrescentIcon } from "@/components/crescent-icon"
+import { useAudio } from "@/lib/audio-context"
 import Link from "next/link"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("")
@@ -20,9 +23,10 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [username, setUsername] = useState("")
   const [fullName, setFullName] = useState("")
+  const [gender, setGender] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [audioData, setAudioData] = useState<{ frequency: number; amplitude: number; beat: boolean } | undefined>()
+  const { audioData } = useAudio()
   const router = useRouter()
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -37,8 +41,14 @@ export default function SignUpPage() {
       return
     }
 
+    if (!gender) {
+      setError("Please select your gender")
+      setIsLoading(false)
+      return
+    }
+
     try {
-      const { error } = await supabase.auth.signUp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -46,14 +56,24 @@ export default function SignUpPage() {
           data: {
             username,
             full_name: fullName,
+            gender,
           },
         },
       })
-      if (error) throw error
+
+      if (signUpError) {
+        if (signUpError.message.includes("already registered") || signUpError.message.includes("already exists")) {
+          setError("This email is already taken, brother. Please use a different email.")
+        } else {
+          setError(signUpError.message)
+        }
+        setIsLoading(false)
+        return
+      }
+
       router.push("/auth/sign-up-success")
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
-    } finally {
       setIsLoading(false)
     }
   }
@@ -182,6 +202,26 @@ export default function SignUpPage() {
                       />
                     </div>
                     <div className="space-y-2">
+                      <Label htmlFor="gender" className="text-foreground">
+                        Gender
+                      </Label>
+                      <Select value={gender} onValueChange={setGender} required>
+                        <SelectTrigger className="bg-input/50 border-border/50 text-foreground focus:border-primary focus:ring-primary/20">
+                          <SelectValue placeholder="Select your gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Alert className="bg-amber-500/10 border-amber-500/20">
+                        <AlertCircle className="h-4 w-4 text-amber-500" />
+                        <AlertDescription className="text-xs text-amber-500">
+                          Important: Gender cannot be changed after account creation. Please choose carefully.
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+                    <div className="space-y-2">
                       <Label htmlFor="password" className="text-foreground">
                         Password
                       </Label>
@@ -249,8 +289,6 @@ export default function SignUpPage() {
           </div>
         </div>
       </div>
-
-      <AudioVisualizer audioSrc="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Love%20and%20Life%20%28Slowed%20%2B%20Echo%29%20by%20Baraa%20Masoud-ibe1Ere18rvPrY76MzlfxYceVSeyAh.mp3" onAudioData={setAudioData} />
     </div>
   )
 }
