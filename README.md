@@ -1,4 +1,4 @@
-# Ummah Connect Login Page
+# Ummah Connect
 
 *Emotion Based Islamic Social Media Platform for Woman's Cyber Safety*
 
