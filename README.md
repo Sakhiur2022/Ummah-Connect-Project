@@ -1,30 +1,27 @@
 # Ummah Connect Login Page
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+*Emotion Based Islamic Social Media Platform for Woman's Cyber Safety*
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/sakhiur2020-2224s-projects/v0-ummah-connect-login-page)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/JOOs5EAU6YI)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://ummah-connect-asr.vercel.app/)
 
 ## Overview
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+
 
 ## Deployment
 
-Your project is live at:
+My project is live at:
 
-**[https://vercel.com/sakhiur2020-2224s-projects/v0-ummah-connect-login-page](https://vercel.com/sakhiur2020-2224s-projects/v0-ummah-connect-login-page)**
+**[https://ummah-connect-asr.vercel.app/](https://ummah-connect-asr.vercel.app/)**
 
-## Build your app
+## Approach used in this app
 
-Continue building your app on:
-
-**[https://v0.app/chat/projects/JOOs5EAU6YI](https://v0.app/chat/projects/JOOs5EAU6YI)**
+1. Frontend: Typescript, Nextjs, Shadcn, Tailwindcss
+2. Backend: Supabase, Nextjs
 
 ## How It Works
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+1. Sign up
+2. Log in
+3. Dashboard
+
