@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <!-- Deep night blue background circle -->
+  <circle cx="256" cy="256" r="256" fill="#070B1C"/>
+  
+  <!-- Glowing outer ring -->
+  <circle cx="256" cy="256" r="240" fill="none" stroke="url(#glowGradient)" stroke-width="2" opacity="0.6"/>
+  
+  <!-- Crescent moon shape -->
+  <path d="M330 160C330 226.274 276.274 280 210 280C182.47 280 156.48 272 135.44 258C148.89 311.98 197.67 352 256 352C323.32 352 378 297.32 378 230C378 189.04 359.33 152.14 330 128.44C330 138.74 330 149.31 330 160Z" fill="url(#moonGradient)"/>
+  
+  <!-- Stars with different sizes -->
+  <circle cx="180" cy="150" r="4" fill="#FFDA85" opacity="0.9">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="3s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="320" cy="180" r="3" fill="#FFDA85" opacity="0.7">
+    <animate attributeName="opacity" values="0.4;0.9;0.4" dur="2.5s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="350" cy="300" r="3.5" fill="#FFDA85" opacity="0.8">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="4s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="150" cy="250" r="2.5" fill="#FFDA85" opacity="0.6">
+    <animate attributeName="opacity" values="0.3;0.8;0.3" dur="3.5s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="260" cy="110" r="5" fill="#FFDA85" opacity="0.9">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite" />
+  </circle>
+  
+  <!-- Small star burst on the crescent -->
+  <circle cx="240" cy="230" r="6" fill="#FFDA85" opacity="0.95">
+    <animate attributeName="r" values="5;6;5" dur="2s" repeatCount="indefinite" />
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite" />
+  </circle>
+  
+  <!-- Subtle radial glow -->
+  <circle cx="256" cy="256" r="256" fill="url(#radialGlow)" opacity="0.15"/>
+  
+  <!-- Gradients definitions -->
+  <defs>
+    <linearGradient id="moonGradient" x1="135.44" y1="240" x2="378" y2="240" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F6C561"/>
+      <stop offset="1" stop-color="#D9A33E"/>
+    </linearGradient>
+    
+    <radialGradient id="radialGlow" cx="256" cy="256" r="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F6C561" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#070B1C" stop-opacity="0"/>
+    </radialGradient>
+    
+    <linearGradient id="glowGradient" x1="16" y1="256" x2="496" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F6C561" stop-opacity="0.2"/>
+      <stop offset="0.5" stop-color="#F6C561" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#F6C561" stop-opacity="0.2"/>
+    </linearGradient>
+  </defs>
+</svg>

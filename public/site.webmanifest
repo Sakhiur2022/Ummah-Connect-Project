@@ -1,0 +1,33 @@
+{
+  "name": "Ummah Connect",
+  "short_name": "Ummah Connect",
+  "description": "A emotion based gamified Islamic social media for women cyber safety",
+  "icons": [
+    {
+      "src": "/icons/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "theme_color": "#070B1C",
+  "background_color": "#070B1C",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait"
+}
