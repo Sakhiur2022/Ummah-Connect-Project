@@ -1,0 +1,10 @@
+create table public."FRIEND_REQUEST" (
+  sender_id uuid not null,
+  receiver_id uuid not null,
+  sent_at timestamp with time zone not null default now(),
+  responded_at timestamp with time zone null,
+  status text not null default '''pending'''::text,
+  constraint FRIEND_REQUEST_pkey primary key (sender_id, receiver_id),
+  constraint FRIEND_REQUEST_receiver_id_fkey foreign KEY (receiver_id) references users (id),
+  constraint FRIEND_REQUEST_sender_id_fkey foreign KEY (sender_id) references users (id)
+) TABLESPACE pg_default;
