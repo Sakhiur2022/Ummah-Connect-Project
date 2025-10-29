@@ -23,6 +23,7 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [username, setUsername] = useState("")
   const [fullName, setFullName] = useState("")
+  const [dateOfBirth, setDateOfBirth] = useState("")
   const [gender, setGender] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -47,6 +48,27 @@ export default function SignUpPage() {
       return
     }
 
+    if (!dateOfBirth) {
+      setError("Please provide your date of birth")
+      setIsLoading(false)
+      return
+    }
+
+    // basic DOB validation: must be in the past and age >= 13
+    const dob = new Date(dateOfBirth)
+    const today = new Date()
+    if (isNaN(dob.getTime()) || dob >= today) {
+      setError("Please enter a valid date of birth")
+      setIsLoading(false)
+      return
+    }
+    const age = today.getFullYear() - dob.getFullYear() - (today < new Date(today.getFullYear(), dob.getMonth(), dob.getDate()) ? 1 : 0)
+    if (age < 13) {
+      setError("You must be at least 13 years old to create an account")
+      setIsLoading(false)
+      return
+    }
+
     try {
       const { error: signUpError } = await supabase.auth.signUp({
         email,
@@ -57,6 +79,7 @@ export default function SignUpPage() {
             username,
             full_name: fullName,
             gender,
+            date_of_birth: new Date(dateOfBirth).toISOString().split("T")[0],
           },
         },
       })
@@ -186,6 +209,19 @@ export default function SignUpPage() {
                           className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20"
                         />
                       </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="dateOfBirth" className="text-foreground">
+                        Date of Birth
+                      </Label>
+                      <Input
+                        id="dateOfBirth"
+                        type="date"
+                        required
+                        value={dateOfBirth}
+                        onChange={(e) => setDateOfBirth(e.target.value)}
+                        className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email" className="text-foreground">
