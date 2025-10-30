@@ -70,7 +70,24 @@ export default function SignUpPage() {
     }
 
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
+      // Check if username is available using our database function
+      const { data: isUsernameAvailable, error: usernameCheckError } = await supabase
+        .rpc('check_username_availability', { username_to_check: username })
+
+      if (usernameCheckError) {
+        console.log("Username check error:", usernameCheckError)
+        setError("Error checking username availability. Please try again.")
+        setIsLoading(false)
+        return
+      }
+
+      if (!isUsernameAvailable) {
+        setError("This username is already taken, brother. Please choose a different username.")
+        setIsLoading(false)
+        return
+      }
+      
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -83,13 +100,28 @@ export default function SignUpPage() {
           },
         },
       })
+      
+      // Debug logging
+      console.log("Sign up response:", { signUpData, signUpError })
 
       if (signUpError) {
-        if (signUpError.message.includes("already registered") || signUpError.message.includes("already exists")) {
+        console.log("Sign up error message:", signUpError.message)
+        if (signUpError.message.includes("already registered") || signUpError.message.includes("already exists") || signUpError.message.includes("email")) {
           setError("This email is already taken, brother. Please use a different email.")
+        } else if (signUpError.message.includes("username") || signUpError.message.includes("Username")) {
+          setError("This username is already taken, brother. Please choose a different username.")
+        } else if (signUpError.message.includes("duplicate") || signUpError.message.includes("unique")) {
+          setError("Username or email already exists. Please try different credentials.")
         } else {
           setError(signUpError.message)
         }
+        setIsLoading(false)
+        return
+      }
+
+      // Check if user was actually created (not just email sent)
+      if (signUpData?.user && !signUpData.user.email_confirmed_at && signUpData.user.identities?.length === 0) {
+        setError("This email is already registered, brother. Please use a different email or try signing in.")
         setIsLoading(false)
         return
       }
@@ -103,8 +135,10 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {/* Background-image */}
       <AnimatedBackground audioData={audioData} theme="islamic" backgroundImage="/images/islamic-night-scene.png" />
 
+      {/* Background-animation */}
       <div className="absolute top-20 left-20 animate-float">
         <div
           className="w-4 h-4 bg-primary rounded-full animate-glow opacity-60 transition-all duration-300"
@@ -148,7 +182,7 @@ export default function SignUpPage() {
               </div>
               <div className="space-y-2">
                 <h1
-                  className="text-4xl font-bold text-balance bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent transition-all duration-300"
+                  className="text-4xl font-bold text-balance bg-linear-to-r from-primary to-accent bg-clip-text text-transparent transition-all duration-300"
                   style={{
                     textShadow: audioData?.beat ? "0 0 20px rgba(251, 191, 36, 0.8)" : "none",
                     transform: audioData?.beat ? "scale(1.02)" : "scale(1)",
