@@ -165,7 +165,8 @@ export function AnimatedBackground({
       if (starsRef.current) {
         starsRef.current.rotation.y += 0.0005 + amplitude * 0.002
         starsRef.current.rotation.z += 0.0003
-        starsRef.current.material.opacity = 0.5 + amplitude * 0.4 + Math.sin(timeRef.current * 2) * 0.1
+        const material = starsRef.current.material as THREE.PointsMaterial
+        material.opacity = 0.5 + amplitude * 0.4 + Math.sin(timeRef.current * 2) * 0.1
       }
 
       if (orbsRef.current) {
@@ -210,8 +211,9 @@ export function AnimatedBackground({
 
         particlesRef.current.geometry.attributes.position.needsUpdate = true
         particlesRef.current.rotation.y += 0.001 + frequency * 0.0002
-        particlesRef.current.material.opacity = 0.5 + amplitude * 0.4
-        particlesRef.current.material.size = 4 + beatIntensityRef.current * 3 + amplitude * 2
+        const particleMaterial = particlesRef.current.material as THREE.PointsMaterial
+        particleMaterial.opacity = 0.5 + amplitude * 0.4
+        particleMaterial.size = 4 + beatIntensityRef.current * 3 + amplitude * 2
       }
 
       renderer.render(scene, camera)

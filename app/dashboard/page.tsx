@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import Header from "@/components/ui/header"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -11,6 +12,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background p-8">
+      <Header />
       <div className="max-w-4xl mx-auto">
         <div className="space-y-6">
           <div className="text-center space-y-2">

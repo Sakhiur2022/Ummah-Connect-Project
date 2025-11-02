@@ -40,7 +40,6 @@ export function IslamicBackground({ audioData }: IslamicBackgroundProps) {
       transparent: true,
       opacity: 0.8,
     })
-
     const starsVertices = []
     for (let i = 0; i < 1000; i++) {
       const x = (Math.random() - 0.5) * 2000
@@ -110,13 +109,13 @@ export function IslamicBackground({ audioData }: IslamicBackgroundProps) {
       // Audio-reactive star rotation
       if (starsRef.current) {
         starsRef.current.rotation.y += 0.0005 + amplitude * 0.002
-        starsRef.current.material.opacity = 0.6 + amplitude * 0.4
+        ;(starsRef.current.material as THREE.PointsMaterial).opacity = 0.6 + amplitude * 0.4
       }
 
       // Audio-reactive moon glow
       if (moonRef.current) {
         const baseOpacity = 0.8 + Math.sin(Date.now() * 0.001) * 0.2
-        moonRef.current.material.opacity = baseOpacity + amplitude * 0.3
+        ;(moonRef.current.material as THREE.MeshBasicMaterial).opacity = baseOpacity + amplitude * 0.3
         moonRef.current.scale.setScalar(1 + beatIntensity * 0.2)
       }
 
@@ -124,8 +123,8 @@ export function IslamicBackground({ audioData }: IslamicBackgroundProps) {
       if (particlesRef.current) {
         particlesRef.current.rotation.y += 0.001 + frequency * 0.0001
         particlesRef.current.rotation.x += 0.0005 + amplitude * 0.001
-        particlesRef.current.material.opacity = 0.6 + amplitude * 0.4
-        particlesRef.current.material.size = 3 + beatIntensity * 2
+        ;(particlesRef.current.material as THREE.PointsMaterial).opacity = 0.6 + amplitude * 0.4
+        ;(particlesRef.current.material as THREE.PointsMaterial).size = 3 + beatIntensity * 2
       }
 
       renderer.render(scene, camera)
