@@ -75,7 +75,6 @@ export default function SignUpPage() {
         .rpc('check_username_availability', { username_to_check: username })
 
       if (usernameCheckError) {
-        console.log("Username check error:", usernameCheckError)
         setError("Error checking username availability. Please try again.")
         setIsLoading(false)
         return
@@ -101,11 +100,10 @@ export default function SignUpPage() {
         },
       })
       
-      // Debug logging
-      console.log("Sign up response:", { signUpData, signUpError })
+      
 
       if (signUpError) {
-        console.log("Sign up error message:", signUpError.message)
+       
         if (signUpError.message.includes("already registered") || signUpError.message.includes("already exists") || signUpError.message.includes("email")) {
           setError("This email is already taken, brother. Please use a different email.")
         } else if (signUpError.message.includes("username") || signUpError.message.includes("Username")) {
