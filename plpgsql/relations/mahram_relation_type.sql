@@ -5,3 +5,18 @@ CREATE TABLE public."MAHRAM_RELATION_TYPE" (
   ),
   gender_restriction TEXT CHECK (gender_restriction IN ('male','female','both')) DEFAULT 'both'
 );
+
+INSERT INTO public."MAHRAM_RELATION_TYPE" (name, gender_restriction)
+VALUES
+  ('father',        'female'),   -- Father is mahram for females
+  ('mother',        'male'),     -- Mother is mahram for males
+  ('brother',       'female'),
+  ('sister',        'male'),
+  ('son',           'female'),
+  ('daughter',      'male'),
+  ('uncle',         'female'),
+  ('aunt',          'male'),
+  ('grandparent',   'both'),     -- Applies to both genders
+  ('nephew',        'female'),
+  ('niece',         'male'),
+  ('spouse',        'both');     -- Mutual mahram relationship

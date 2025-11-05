@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import AnimatedDashboard from "@/components/dashboard/AnimatedDashboard"
+import Header from "@/components/ui/header"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -11,10 +12,13 @@ export default async function DashboardPage() {
   }
 
   return (
+    <>
+      <Header />
     <AnimatedDashboard
       userEmail={data.user.email}
       userId={data.user.id}
       createdAt={data.user.created_at}
     />
+    </>
   )
 }

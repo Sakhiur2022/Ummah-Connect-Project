@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ProfileAnimatedBackground } from "@/components/background/profile-animated-background";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { ProfileContent } from "@/components/profile/profile-content";
+import Header from "@/components/ui/header";
 
 interface ProfilePageProps {
   params: {
@@ -27,7 +28,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   return (
     <div className="min-h-screen relative">
       <ProfileAnimatedBackground />
-
+      <Header />
       {/* Content with glassmorphism */}
       <div className="relative z-10">
         <ProfileHeader user={user} />
