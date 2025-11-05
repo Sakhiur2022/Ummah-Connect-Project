@@ -1,11 +1,12 @@
-"use client"
+"use client";
 
-import type { ReactNode } from "react"
-import { AudioVisualizer } from "@/components/audio-visualizer"
-import { AudioProvider, useAudio } from "@/lib/audio-context"
+import type { ReactNode } from "react";
+import { AudioVisualizer } from "@/components/audio-visualizer";
+import { AudioProvider, useAudio } from "@/lib/audio-context";
+import { ThemeProvider } from "@/lib/theme-context";
 
 function ClientLayoutContent({ children }: { children: ReactNode }) {
-  const { setAudioData } = useAudio()
+  const { setAudioData } = useAudio();
 
   return (
     <>
@@ -15,13 +16,15 @@ function ClientLayoutContent({ children }: { children: ReactNode }) {
         onAudioData={setAudioData}
       />
     </>
-  )
+  );
 }
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
   return (
-    <AudioProvider>
-      <ClientLayoutContent>{children}</ClientLayoutContent>
-    </AudioProvider>
-  )
+    <ThemeProvider>
+      <AudioProvider>
+        <ClientLayoutContent>{children}</ClientLayoutContent>
+      </AudioProvider>
+    </ThemeProvider>
+  );
 }
