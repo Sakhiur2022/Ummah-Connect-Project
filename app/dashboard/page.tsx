@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { Settings } from "lucide-react"
+import Link from "next/link"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -11,7 +13,16 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto relative">
+        {/* Settings Icon Link */}
+        <Link 
+          href="/settings" 
+          className="absolute top-0 right-0 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          aria-label="Settings"
+        >
+          <Settings className="w-6 h-6" />
+        </Link>
+        
         <div className="space-y-6">
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-bold text-foreground">Welcome to Ummah Connect</h1>
