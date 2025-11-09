@@ -295,9 +295,9 @@ export default function Header() {
             </button>
           </div>
 
-          {/* Search Bar */}
-          <div className="flex-1 max-w-2xl mx-4 relative" ref={searchRef}>
-            <div className="relative">
+          {/* Search Bar - Desktop */}
+          <div className="hidden md:flex flex-1 max-w-2xl mx-4 relative" ref={searchRef}>
+            <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <input
                 type="text"
@@ -455,23 +455,88 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setShowMobileMenu(!showMobileMenu)}
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded-full hover:bg-accent/50 transition-colors"
-          >
-            {showMobileMenu ? (
-              <X className="w-5 h-5 text-foreground" />
-            ) : (
-              <Menu className="w-5 h-5 text-foreground" />
-            )}
-          </button>
+          {/* Mobile Controls */}
+          <div className="md:hidden flex items-center space-x-2">
+            <ThemeToggleButton />
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-accent/50 transition-colors"
+            >
+              {showMobileMenu ? (
+                <X className="w-5 h-5 text-foreground" />
+              ) : (
+                <Menu className="w-5 h-5 text-foreground" />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
         {showMobileMenu && (
           <div className="md:hidden border-t border-border/20 py-4">
-            <div className="space-y-2">
+            {/* Mobile Search Bar - Full Width */}
+            <div className="px-4 pb-4" ref={searchRef}>
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Search users and posts..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  onFocus={() =>
+                    searchResults.length > 0 && setShowSearchResults(true)
+                  }
+                  className="w-full pl-10 pr-4 py-2 bg-card/50 backdrop-blur border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all placeholder:text-muted-foreground text-sm"
+                />
+              </div>
+
+              {showSearchResults && searchResults.length > 0 && (
+                <div className="absolute left-4 right-4 top-full mt-2 bg-card/95 backdrop-blur border border-border rounded-lg shadow-lg max-h-96 overflow-y-auto z-50">
+                  {searchResults.map((result) => (
+                    <button
+                      key={`${result.type}-${result.id}`}
+                      onClick={() => {
+                        handleSearchSelect(result);
+                        setShowMobileMenu(false);
+                      }}
+                      className="w-full px-4 py-3 text-left hover:bg-accent/50 transition-colors flex items-center space-x-3 border-b border-border/20 last:border-b-0"
+                    >
+                      {result.image ? (
+                        <img
+                          src={result.image || "/placeholder.svg"}
+                          alt={result.title}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                          {result.type === "user" ? (
+                            <UserIcon className="w-4 h-4 text-muted-foreground" />
+                          ) : (
+                            <div className="w-2 h-2 bg-muted-foreground rounded-full" />
+                          )}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {result.title}
+                        </p>
+                        {result.subtitle && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {result.subtitle}
+                          </p>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground capitalize">
+                        {result.type}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Navigation Items */}
+            <div className="space-y-2 px-4">
               {navigation.map((item) => (
                 <button
                   key={item.label}
@@ -490,27 +555,43 @@ export default function Header() {
                   )}
                 </button>
               ))}
+            </div>
 
-              <div className="border-t border-border/20 pt-2 mt-2">
-                <button
-                  onClick={() => {
-                    router.push("/settings");
-                    setShowMobileMenu(false);
-                  }}
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-accent/50 transition-colors"
-                >
-                  <Settings className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-sm font-medium">Settings</span>
-                </button>
+            {/* Mobile Menu Footer */}
+            <div className="border-t border-border/20 pt-4 mt-4 px-4">
+              <button
+                onClick={() => {
+                  router.push(
+                    userProfile
+                      ? `/profile/${userProfile.username}`
+                      : "/profile"
+                  );
+                  setShowMobileMenu(false);
+                }}
+                className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-accent/50 transition-colors mb-2"
+              >
+                <UserIcon className="w-5 h-5 text-muted-foreground" />
+                <span className="text-sm font-medium">Profile</span>
+              </button>
 
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600"
-                >
-                  <LogOut className="w-5 h-5" />
-                  <span className="text-sm font-medium">Logout</span>
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  router.push("/settings");
+                  setShowMobileMenu(false);
+                }}
+                className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-accent/50 transition-colors mb-2"
+              >
+                <Settings className="w-5 h-5 text-muted-foreground" />
+                <span className="text-sm font-medium">Settings</span>
+              </button>
+
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600"
+              >
+                <LogOut className="w-5 h-5" />
+                <span className="text-sm font-medium">Logout</span>
+              </button>
             </div>
           </div>
         )}
