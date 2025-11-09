@@ -133,8 +133,12 @@ export default function Header() {
     } else if (result.type === "post") {
       router.push(`/post/${result.id}`);
     }
-    setShowSearchResults(false);
-    setSearchQuery("");
+    // Clear state after navigation starts
+    setTimeout(() => {
+      setShowSearchResults(false);
+      setSearchQuery("");
+      setShowMobileMenu(false);
+    }, 100);
   };
 
   const handleLogout = async () => {
@@ -491,7 +495,7 @@ export default function Header() {
               </div>
 
               {showSearchResults && searchResults.length > 0 && (
-                <div className="absolute left-4 right-4 top-full mt-2 bg-card/95 backdrop-blur border border-border rounded-lg shadow-lg max-h-96 overflow-y-auto z-50">
+                <div className="mt-2 bg-card/95 backdrop-blur border border-border rounded-lg shadow-lg max-h-96 overflow-y-auto">
                   {searchResults.map((result) => (
                     <button
                       key={`${result.type}-${result.id}`}
@@ -508,7 +512,7 @@ export default function Header() {
                           className="w-8 h-8 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                        <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
                           {result.type === "user" ? (
                             <UserIcon className="w-4 h-4 text-muted-foreground" />
                           ) : (
@@ -526,7 +530,7 @@ export default function Header() {
                           </p>
                         )}
                       </div>
-                      <span className="text-xs text-muted-foreground capitalize">
+                      <span className="text-xs text-muted-foreground capitalize flex-shrink-0">
                         {result.type}
                       </span>
                     </button>
