@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { AudioVisualizer } from "@/components/audio-visualizer";
 import { AudioProvider, useAudio } from "@/lib/audio-context";
 import { ThemeProvider } from "@/lib/theme-context";
+import Header from "@/components/ui/header";
 
 function ClientLayoutContent({ children }: { children: ReactNode }) {
   const { setAudioData } = useAudio();

@@ -13,7 +13,7 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <Header />
+    <Header/>
     <AnimatedDashboard
       userEmail={data.user.email}
       userId={data.user.id}
