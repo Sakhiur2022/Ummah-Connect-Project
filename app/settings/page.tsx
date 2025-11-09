@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 const supabase = createClient();
 import { useAuth } from '@/hooks/useAuth';
 import { User } from '@supabase/supabase-js';
+import Header from '@/components/ui/header';
 
 // Helper component for each setting card
 const SettingsCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -137,6 +138,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-6">
+        <Header/>
         <h1 className="text-3xl font-bold">Account Settings</h1>
 
         {/* --- Form 1: Username --- */}
