@@ -1,10 +1,20 @@
 "use client";
 
-import { useTheme } from "@/lib/theme-context";
+import { useThemeSafe } from "@/lib/use-theme-safe";
 import { Sun, Moon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function ThemeToggleButton() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme } = useThemeSafe();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <button

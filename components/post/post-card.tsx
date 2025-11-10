@@ -52,6 +52,8 @@ export function PostCard({
   });
   const [hasReacted, setHasReacted] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [editingContent, setEditingContent] = useState<string>("");
+  const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [media, setMedia] = useState<PostMedia[]>([]);
@@ -240,6 +242,42 @@ export function PostCard({
     }
   };
 
+  const handleEditPost = () => {
+    setEditingContent(content);
+    setIsEditing(true);
+    setShowMenu(false);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingContent.trim()) {
+      alert("Post content cannot be empty");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("POST")
+        .update({ content: editingContent.trim() })
+        .eq("post_id", postId);
+
+      if (error) throw error;
+
+      // Update local content display
+      alert("Post updated successfully!");
+      setIsEditing(false);
+      // Refresh the page to show updated content
+      window.location.reload();
+    } catch (error) {
+      console.error("Error updating post:", error);
+      alert("Failed to update post");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditingContent("");
+  };
+
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("en-US", {
       month: "short",
@@ -328,10 +366,7 @@ export function PostCard({
               {showMenu && (
                 <div className={`absolute right-0 mt-2 w-40 rounded-lg border ${theme === "light" ? "bg-white border-gray-200" : "bg-slate-800 border-slate-700"} shadow-lg z-50`}>
                   <button 
-                    onClick={() => {
-                      setShowMenu(false);
-                      // TODO: Implement edit functionality
-                    }}
+                    onClick={handleEditPost}
                     className={`w-full px-4 py-2 text-left flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 ${theme === "light" ? "text-gray-900" : "text-cyan-50"}`}
                   >
                     <Edit2 size={16} />
@@ -356,12 +391,40 @@ export function PostCard({
 
       {/* Content */}
       <div className="p-4">
-        <Link href={`/post/${postId}`}>
-          <p className={`text-sm leading-relaxed line-clamp-3 transition-colors ${theme === "light" ? "text-gray-800 hover:text-amber-700" : "text-cyan-50 hover:text-cyan-200"}`}>
-            {content}
-          </p>
-        </Link>
-        <p className={`text-xs mt-2 ${mutedTextClass}`}>{formatDate(createdAt)}</p>
+        {isEditing ? (
+          <div className="space-y-3">
+            <textarea
+              value={editingContent}
+              onChange={(e) => setEditingContent(e.target.value)}
+              className={`w-full p-3 rounded-lg border focus:outline-none focus:ring-2 resize-none ${theme === "light" ? "bg-gray-100 border-gray-300 text-gray-900 focus:ring-amber-500" : "bg-slate-800/40 border-slate-700 text-cyan-50 focus:ring-cyan-500"}`}
+              rows={4}
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={handleCancelEdit}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${theme === "light" ? "bg-gray-200 hover:bg-gray-300 text-gray-900" : "bg-slate-700/40 hover:bg-slate-700/60 text-cyan-100"}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${theme === "light" ? "bg-amber-600 hover:bg-amber-700 text-white" : "bg-cyan-600 hover:bg-cyan-700 text-white"}`}
+              >
+                <Check size={16} />
+                Save
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <Link href={`/post/${postId}`}>
+              <p className={`text-sm leading-relaxed line-clamp-3 transition-colors ${theme === "light" ? "text-gray-800 hover:text-amber-700" : "text-cyan-50 hover:text-cyan-200"}`}>
+                {content}
+              </p>
+            </Link>
+            <p className={`text-xs mt-2 ${mutedTextClass}`}>{formatDate(createdAt)}</p>
+          </>
+        )}
       </div>
 
       {/* Media Gallery */}
