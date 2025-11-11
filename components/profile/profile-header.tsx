@@ -1,6 +1,6 @@
 "use client";
 
-import { useTheme } from "@/lib/theme-context";
+import { useThemeSafe } from "@/lib/use-theme-safe";
 import { motion } from "framer-motion";
 
 interface ProfileHeaderProps {
@@ -8,7 +8,7 @@ interface ProfileHeaderProps {
 }
 
 export function ProfileHeader({ user }: ProfileHeaderProps) {
-  const { theme } = useTheme();
+  const { theme } = useThemeSafe();
 
   return (
     <motion.div

@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { useTheme } from "@/lib/theme-context";
+import { useThemeSafe } from "@/lib/use-theme-safe";
 import { Heart, Reply, MoreVertical, Send, Loader2 } from "lucide-react";
 
 interface CommentSectionProps {
@@ -23,18 +24,35 @@ interface Comment {
   };
   reactionCount?: number;
   userReacted?: boolean;
+  replies?: Reply[];
+}
+
+interface Reply {
+  id: string;
+  user_id: string;
+  comment_id: string;
+  content: string;
+  created_at: string;
+  creator?: {
+    full_name: string;
+    username: string;
+    profile_image?: string;
+  };
 }
 
 export function CommentSection({
   postId,
   maxDisplay = 5,
 }: CommentSectionProps) {
-  const { theme } = useTheme();
+  const { theme } = useThemeSafe();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const supabase = createClient();
 
   // Theme-aware classes
@@ -103,11 +121,42 @@ export function CommentSection({
           .limit(maxDisplay);
 
         if (commentsData) {
-          const formattedComments = commentsData.map((c: any) => ({
-            ...c,
-            creator: Array.isArray(c.creator) ? c.creator[0] : c.creator,
-          }));
-          setComments(formattedComments);
+          // Fetch replies for each comment
+          const commentsWithReplies = await Promise.all(
+            commentsData.map(async (c: any) => {
+              const { data: repliesData } = await supabase
+                .from("REPLY")
+                .select(
+                  `
+                  id,
+                  user_id,
+                  comment_id,
+                  content,
+                  created_at,
+                  creator:user_id (
+                    full_name,
+                    username,
+                    profile_image
+                  )
+                `
+                )
+                .eq("comment_id", c.id)
+                .order("created_at", { ascending: true });
+
+              return {
+                ...c,
+                creator: Array.isArray(c.creator) ? c.creator[0] : c.creator,
+                replies: repliesData
+                  ? repliesData.map((r: any) => ({
+                      ...r,
+                      creator: Array.isArray(r.creator) ? r.creator[0] : r.creator,
+                    }))
+                  : [],
+              };
+            })
+          );
+
+          setComments(commentsWithReplies);
         }
       } catch (error) {
         console.error("Error fetching comments:", error);
@@ -159,9 +208,62 @@ export function CommentSection({
                 creator: Array.isArray(fullComment.creator)
                   ? fullComment.creator[0]
                   : fullComment.creator,
+                replies: [],
               },
               ...prev.slice(0, maxDisplay - 1),
             ]);
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "REPLY",
+        },
+        async (payload) => {
+          const newReplyData = payload.new as any;
+
+          // Fetch full reply data with creator info
+          const { data: fullReply } = await supabase
+            .from("REPLY")
+            .select(
+              `
+              id,
+              user_id,
+              comment_id,
+              content,
+              created_at,
+              creator:user_id (
+                full_name,
+                username,
+                profile_image
+              )
+            `
+            )
+            .eq("id", newReplyData.id)
+            .single();
+
+          if (fullReply) {
+            setComments((prev) =>
+              prev.map((comment) =>
+                comment.id === newReplyData.comment_id
+                  ? {
+                      ...comment,
+                      replies: [
+                        ...(comment.replies || []),
+                        {
+                          ...fullReply,
+                          creator: Array.isArray(fullReply.creator)
+                            ? fullReply.creator[0]
+                            : fullReply.creator,
+                        },
+                      ],
+                    }
+                  : comment
+              )
+            );
           }
         }
       )
@@ -197,6 +299,35 @@ export function CommentSection({
       alert("Failed to post comment");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleReplySubmit = async (e: React.FormEvent, commentId: string) => {
+    e.preventDefault();
+
+    if (!replyText.trim() || !userId) return;
+
+    setIsSubmittingReply(true);
+
+    try {
+      const { error } = await supabase.from("REPLY").insert([
+        {
+          user_id: userId,
+          comment_id: commentId,
+          content: replyText.trim(),
+          created_at: new Date().toISOString(),
+        },
+      ]);
+
+      if (error) throw error;
+
+      setReplyText("");
+      setReplyingTo(null);
+    } catch (error) {
+      console.error("Error posting reply:", error);
+      alert("Failed to post reply");
+    } finally {
+      setIsSubmittingReply(false);
     }
   };
 
@@ -289,14 +420,16 @@ export function CommentSection({
               <div className="flex-1 min-w-0">
                 <div className={`border rounded-lg p-2 ${commentBgClass}`}>
                   <div className="flex items-center justify-between">
-                    <div>
-                      <p className={`text-xs font-semibold ${secondaryTextClass}`}>
-                        {comment.creator?.full_name}
-                      </p>
-                      <p className={`text-xs ${mutedTextClass}`}>
-                        @{comment.creator?.username}
-                      </p>
-                    </div>
+                    <Link href={`/profile/${comment.creator?.username}`} className="hover:opacity-80 transition-opacity">
+                      <div>
+                        <p className={`text-xs font-semibold ${secondaryTextClass}`}>
+                          {comment.creator?.full_name}
+                        </p>
+                        <p className={`text-xs ${mutedTextClass}`}>
+                          @{comment.creator?.username}
+                        </p>
+                      </div>
+                    </Link>
                     <button className={`p-1 rounded transition-colors ${theme === "light" ? "hover:bg-gray-200" : "hover:bg-slate-700/40"}`}>
                       <MoreVertical className={`w-3 h-3 ${mutedTextClass}`} />
                     </button>
@@ -312,10 +445,109 @@ export function CommentSection({
                   <button className={`flex items-center gap-1 ${theme === "light" ? "hover:text-amber-600" : "hover:text-cyan-300"}`}>
                     <Heart size={12} />
                   </button>
-                  <button className={`flex items-center gap-1 ${theme === "light" ? "hover:text-amber-600" : "hover:text-cyan-300"}`}>
+                  <button 
+                    onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                    className={`flex items-center gap-1 ${theme === "light" ? "hover:text-amber-600" : "hover:text-cyan-300"}`}
+                  >
                     <Reply size={12} />
                   </button>
                 </div>
+
+                {/* Reply Form */}
+                {replyingTo === comment.id && userId && (
+                  <form onSubmit={(e) => handleReplySubmit(e, comment.id)} className={`mt-3 pt-3 ${theme === "light" ? "border-gray-300" : "border-slate-700/30"} border-t`}>
+                    <div className="flex gap-2">
+                      <textarea
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        placeholder="Write a reply..."
+                        maxLength={300}
+                        className={`flex-1 p-2 border rounded-lg ${inputBgClass} focus:outline-none focus:ring-2 ${theme === "light" ? "focus:ring-amber-500/50" : "focus:ring-cyan-500/50"} resize-none text-sm`}
+                        rows={2}
+                      />
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className={`text-xs ${mutedTextClass}`}>
+                        {replyText.length}/300
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setReplyingTo(null)}
+                          className={`px-3 py-1 rounded text-sm ${theme === "light" ? "hover:bg-gray-200 text-gray-600" : "hover:bg-slate-700/40 text-slate-400"} transition-colors`}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={isSubmittingReply || !replyText.trim()}
+                          className={`flex items-center gap-1 px-3 py-1 ${buttonClass} disabled:opacity-50 disabled:cursor-not-allowed rounded text-xs font-medium transition-all`}
+                        >
+                          {isSubmittingReply ? (
+                            <>
+                              <Loader2 size={12} className="animate-spin" />
+                              Posting...
+                            </>
+                          ) : (
+                            <>
+                              <Send size={12} />
+                              Reply
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                )}
+
+                {/* Display Replies */}
+                {comment.replies && comment.replies.length > 0 && (
+                  <div className={`mt-3 pt-3 space-y-2 ${theme === "light" ? "border-gray-300" : "border-slate-700/30"} border-t`}>
+                    {comment.replies.map((reply) => (
+                      <div key={reply.id} className="flex gap-2 ml-4">
+                        <div className={`w-6 h-6 rounded-full flex-shrink-0 ${avatarBgClass} flex items-center justify-center overflow-hidden text-xs`}>
+                          {reply.creator?.profile_image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={reply.creator.profile_image}
+                              alt={reply.creator.full_name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className={`font-bold ${avatarTextClass}`}>
+                              {reply.creator?.full_name.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className={`border rounded p-2 ${theme === "light" ? "bg-gray-50 border-gray-200" : "bg-slate-900/20 border-slate-700/20"}`}>
+                            <div className="flex items-center justify-between">
+                              <Link href={`/profile/${reply.creator?.username}`} className="hover:opacity-80 transition-opacity">
+                                <div>
+                                  <p className={`text-xs font-semibold ${secondaryTextClass}`}>
+                                    {reply.creator?.full_name}
+                                  </p>
+                                  <p className={`text-xs ${mutedTextClass}`}>
+                                    @{reply.creator?.username}
+                                  </p>
+                                </div>
+                              </Link>
+                            </div>
+
+                            <p className={`text-xs mt-1 break-words ${textClass}`}>
+                              {reply.content}
+                            </p>
+                          </div>
+
+                          <div className={`flex items-center gap-2 mt-1 text-xs ${mutedTextClass}`}>
+                            <span>{formatDate(reply.created_at)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))

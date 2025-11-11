@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PostCard } from "@/components/post/post-card";
 import { CommentSection } from "@/components/post/comment-section";
 import Header from "@/components/ui/header";
+import { BackButton } from "@/components/ui/back-button";
 
 interface PostPageProps {
   params: {
@@ -43,7 +44,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
   // Fetch engagement data
   const { data: counter } = await supabase
-    .from("POST_COUNTER")
+    .from("post_counter")
     .select("total_reactions, total_comments, total_shares")
     .eq("post_id", postId)
     .single();
@@ -73,8 +74,10 @@ export default async function PostPage({ params }: PostPageProps) {
       <Header />
 
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <BackButton />
+        
         {/* Post Detail */}
-        <div className="space-y-8">
+        <div className="space-y-8 mt-6">
           {/* Main Post Card */}
           <PostCard
             postId={post.post_id}

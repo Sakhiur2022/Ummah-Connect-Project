@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { useTheme } from "@/lib/theme-context";
+import { useThemeSafe } from "@/lib/use-theme-safe";
 import { Heart, MessageCircle, Share2, MoreVertical, Trash2, Edit2, Check, Copy } from "lucide-react";
 import { ReactionBar } from "./reaction-bar";
 
@@ -44,7 +44,7 @@ export function PostCard({
   currentUserId,
   onPostDeleted,
 }: PostCardProps) {
-  const { theme } = useTheme();
+  const { theme } = useThemeSafe();
   const [engagement, setEngagement] = useState<PostEngagement>({
     totalReactions: 0,
     totalComments: 0,

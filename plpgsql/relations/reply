@@ -1,6 +1,0 @@
-create table public."WEBSITE" (
-  id uuid not null default gen_random_uuid (),
-  profile_id uuid not null default gen_random_uuid (),
-  url text null,
-  constraint WEBSITE_pkey primary key (id, profile_id)
-) TABLESPACE pg_default;

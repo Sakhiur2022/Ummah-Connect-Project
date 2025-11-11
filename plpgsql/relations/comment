@@ -1,8 +1,0 @@
-create table public."COMMENTS" (
-  id uuid not null default gen_random_uuid (),
-  user_id uuid not null default gen_random_uuid (),
-  post_id uuid null default gen_random_uuid (),
-  content text null,
-  created_at timestamp with time zone null default now(),
-  constraint COMMENTS_pkey primary key (id)
-) TABLESPACE pg_default;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { useTheme } from "@/lib/theme-context";
+import { useThemeSafe } from "@/lib/use-theme-safe";
 import { motion } from "framer-motion";
 
 interface ProfileAnimatedBackgroundProps {
@@ -11,7 +11,7 @@ interface ProfileAnimatedBackgroundProps {
 export function ProfileAnimatedBackground({
   className = "",
 }: ProfileAnimatedBackgroundProps) {
-  const { theme } = useTheme();
+  const { theme } = useThemeSafe();
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const backgroundImage =

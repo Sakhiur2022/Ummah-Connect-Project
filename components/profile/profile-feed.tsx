@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useTheme } from "@/lib/theme-context";
+import { useThemeSafe } from "@/lib/use-theme-safe";
 import { Heart, ImageIcon, X, Send, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PostCard } from "@/components/post/post-card";
@@ -29,7 +29,7 @@ interface Post {
 }
 
 function ProfileFeedContent({ userId, userName, userImage, isOwnProfile, currentUserId }: ProfileFeedProps) {
-  const { theme } = useTheme();
+  const { theme } = useThemeSafe();
   // Post Composer State
   const [content, setContent] = useState("");
   const [images, setImages] = useState<File[]>([]);

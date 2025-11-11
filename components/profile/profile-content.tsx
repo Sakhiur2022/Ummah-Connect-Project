@@ -1,6 +1,6 @@
 "use client";
 
-import { useTheme } from "@/lib/theme-context";
+import { useThemeSafe } from "@/lib/use-theme-safe";
 import { motion } from "framer-motion";
 
 interface ProfileContentProps {
@@ -9,7 +9,7 @@ interface ProfileContentProps {
 }
 
 export function ProfileContent({ userId, username }: ProfileContentProps) {
-  const { theme } = useTheme();
+  const { theme } = useThemeSafe();
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },

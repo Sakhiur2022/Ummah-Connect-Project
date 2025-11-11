@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useTheme } from "@/lib/theme-context";
+import { useThemeSafe } from "@/lib/use-theme-safe";
 
 interface ReactionBarProps {
   postId: number;
@@ -28,7 +28,7 @@ export function ReactionBar({ postId, onReactionChange }: ReactionBarProps) {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const supabase = createClient();
-  const { theme } = useTheme();
+  const { theme } = useThemeSafe();
 
   useEffect(() => {
     const fetchReactions = async () => {
