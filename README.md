@@ -24,4 +24,5 @@ My project is live at:
 1. Sign up
 2. Log in
 3. Dashboard
-
+4. Profile
+5. Post, React, Share Comment, Reply
