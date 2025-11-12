@@ -4,6 +4,7 @@ import { PostCard } from "@/components/post/post-card";
 import { CommentSection } from "@/components/post/comment-section";
 import Header from "@/components/ui/header";
 import { BackButton } from "@/components/ui/back-button";
+import { ProfileAnimatedBackground } from "@/components/background/profile-animated-background";
 
 interface PostPageProps {
   params: {
@@ -70,8 +71,9 @@ export default async function PostPage({ params }: PostPageProps) {
   const isHighlighted = rank !== null && rank <= 3;
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-slate-900">
+    <div className="min-h-screen">
       <Header />
+      <ProfileAnimatedBackground />
 
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <BackButton />
