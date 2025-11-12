@@ -163,7 +163,7 @@ export function IslamicBackground({ audioData }: IslamicBackgroundProps) {
           backgroundImage: "url('/images/islamic-night-scene.png')",
         }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-900/80" />
+      <div className="absolute inset-0 bg-linear-to-b from-slate-900/60 via-slate-900/40 to-slate-900/80" />
       <div ref={mountRef} className="relative z-10" />
     </div>
   )

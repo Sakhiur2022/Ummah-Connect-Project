@@ -17,8 +17,8 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
       transition={{ duration: 0.6 }}
       className={`pt-32 pb-12 px-4 sm:px-6 lg:px-8 ${
         theme === "light"
-          ? "bg-gradient-to-b from-white/40 via-white/20 to-transparent backdrop-blur-md"
-          : "bg-gradient-to-b from-slate-900/40 via-slate-900/20 to-transparent backdrop-blur-md"
+          ? "bg-linear-to-b from-white/40 via-white/20 to-transparent backdrop-blur-md"
+          : "bg-linear-to-b from-slate-900/40 via-slate-900/20 to-transparent backdrop-blur-md"
       }`}
     >
       <div className="max-w-6xl mx-auto">
@@ -26,8 +26,8 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
         <div
           className={`relative -mx-4 sm:-mx-6 lg:-mx-8 h-48 sm:h-64 rounded-b-2xl overflow-hidden backdrop-blur-sm mb-6 ${
             theme === "light"
-              ? "bg-gradient-to-br from-sky-300/30 to-amber-200/30"
-              : "bg-gradient-to-br from-cyan-900/30 to-purple-900/30"
+              ? "bg-linear-to-br from-sky-300/30 to-amber-200/30"
+              : "bg-linear-to-br from-cyan-900/30 to-purple-900/30"
           }`}
         >
           <div
@@ -52,8 +52,8 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
             transition={{ delay: 0.2, duration: 0.4 }}
             className={`relative -mt-24 sm:-mt-20 w-32 h-32 sm:w-40 sm:h-40 rounded-full ring-4 ${
               theme === "light"
-                ? "ring-white/80 bg-gradient-to-br from-amber-100 to-yellow-100"
-                : "ring-slate-800/80 bg-gradient-to-br from-cyan-900 to-purple-900"
+                ? "ring-white/80 bg-linear-to-br from-amber-100 to-yellow-100"
+                : "ring-slate-800/80 bg-linear-to-br from-cyan-900 to-purple-900"
             } flex items-center justify-center font-bold text-3xl ${
               theme === "light" ? "text-amber-900" : "text-cyan-300"
             } backdrop-blur-md shadow-2xl`}

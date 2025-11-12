@@ -356,7 +356,7 @@ export function CommentSection({
       {userId && (
         <form onSubmit={handleCommentSubmit} className="space-y-3">
           <div className="flex gap-3">
-            <div className={`w-8 h-8 rounded-full flex-shrink-0 ${avatarBgClass} flex items-center justify-center`}>
+            <div className={`w-8 h-8 rounded-full shrink-0 ${avatarBgClass} flex items-center justify-center`}>
               <span className={`text-xs font-bold ${avatarTextClass}`}>You</span>
             </div>
             <textarea
@@ -402,7 +402,7 @@ export function CommentSection({
         ) : comments.length > 0 ? (
           comments.map((comment) => (
             <div key={comment.id} className="flex gap-3">
-              <div className={`w-8 h-8 rounded-full flex-shrink-0 ${avatarBgClass} flex items-center justify-center overflow-hidden`}>
+              <div className={`w-8 h-8 rounded-full shrink-0 ${avatarBgClass} flex items-center justify-center overflow-hidden`}>
                 {comment.creator?.profile_image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -435,7 +435,7 @@ export function CommentSection({
                     </button>
                   </div>
 
-                  <p className={`text-sm mt-1 break-words ${textClass}`}>
+                  <p className={`text-sm mt-1 wrap-break-word ${textClass}`}>
                     {comment.content}
                   </p>
                 </div>
@@ -505,7 +505,7 @@ export function CommentSection({
                   <div className={`mt-3 pt-3 space-y-2 ${theme === "light" ? "border-gray-300" : "border-slate-700/30"} border-t`}>
                     {comment.replies.map((reply) => (
                       <div key={reply.id} className="flex gap-2 ml-4">
-                        <div className={`w-6 h-6 rounded-full flex-shrink-0 ${avatarBgClass} flex items-center justify-center overflow-hidden text-xs`}>
+                        <div className={`w-6 h-6 rounded-full shrink-0 ${avatarBgClass} flex items-center justify-center overflow-hidden text-xs`}>
                           {reply.creator?.profile_image ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -535,7 +535,7 @@ export function CommentSection({
                               </Link>
                             </div>
 
-                            <p className={`text-xs mt-1 break-words ${textClass}`}>
+                            <p className={`text-xs mt-1 wrap-break-word ${textClass}`}>
                               {reply.content}
                             </p>
                           </div>

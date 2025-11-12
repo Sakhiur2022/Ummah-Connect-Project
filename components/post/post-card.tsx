@@ -332,7 +332,7 @@ export function PostCard({
       <div className={`p-4 border-b ${theme === "light" ? "border-gray-200" : "border-slate-700/20"}`}>
         <div className="flex items-start justify-between">
           <Link href={`/profile/${creatorUsername}`} className="flex gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${theme === "light" ? "bg-gray-200" : "bg-slate-800/60"}`}>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${theme === "light" ? "bg-gray-200" : "bg-slate-800/60"}`}>
               {creatorImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img

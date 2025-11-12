@@ -41,7 +41,7 @@ export function ProfileAnimatedBackground({
       {theme === "light" ? (
         <>
           {/* Light mode: Spiritual, serene overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-sky-200/20 via-transparent to-amber-50/30 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-linear-to-b from-sky-200/20 via-transparent to-amber-50/30 mix-blend-multiply" />
           <div className="absolute inset-0 bg-radial-gradient from-transparent via-white/5 to-white/10" />
 
           {/* Animated light orbs for spiritual feel */}
@@ -54,7 +54,7 @@ export function ProfileAnimatedBackground({
       ) : (
         <>
           {/* Dark mode: Cyberpunk, neon overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-900/50 to-black/60 mix-blend-overlay" />
+          <div className="absolute inset-0 bg-linear-to-b from-slate-900/40 via-slate-900/50 to-black/60 mix-blend-overlay" />
           <div className="absolute inset-0 bg-radial-gradient from-cyan-500/5 via-transparent to-purple-500/5" />
 
           {/* Animated neon orbs for cyberpunk feel */}
@@ -67,7 +67,7 @@ export function ProfileAnimatedBackground({
       )}
 
       {/* Glassmorphism overlay for content area */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/2 to-transparent" />
     </div>
   );
 }
