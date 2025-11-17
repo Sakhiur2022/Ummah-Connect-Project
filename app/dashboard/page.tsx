@@ -504,243 +504,248 @@ export default function Dashboard() {
   const age = calculateAge(user.date_of_birth)
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header with Islamic Pattern */}
-      <div className="relative bg-gradient-to-r from-sidebar via-sidebar-accent to-sidebar overflow-hidden">
-        <div 
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: 'url(data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23fbbf24" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E)'
-          }}
-        />
-        <div className="container mx-auto px-4 py-6 relative z-10">
-          <motion.div 
-            className="flex items-center justify-between"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <div className="flex items-center gap-3">
-              <CrescentIcon className="w-8 h-8 text-sidebar-primary" />
-              <h1 className="text-2xl font-bold text-sidebar-foreground">Ummah Connect</h1>
-            </div>
+    <div>
+      Saif Ahmed Bro pls fix this....
+    </div>
+    // <div className="min-h-screen bg-background">
+    //   Header with Islamic Pattern
+    //   <div className="relative bg-gradient-to-r from-sidebar via-sidebar-accent to-sidebar overflow-hidden">
+    //     <div 
+    //       className="absolute inset-0 opacity-10"
+    //       style={{
+    //         backgroundImage: 'url(data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23fbbf24" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E)'
+    //       }}
+    //     />
+    //     <div className="container mx-auto px-4 py-6 relative z-10">
+    //       <motion.div 
+    //         className="flex items-center justify-between"
+    //         initial={{ opacity: 0, x: -20 }}
+    //         animate={{ opacity: 1, x: 0 }}
+    //       >
+    //         <div className="flex items-center gap-3">
+    //           <CrescentIcon className="w-8 h-8 text-sidebar-primary" />
+    //           <h1 className="text-2xl font-bold text-sidebar-foreground">Ummah Connect</h1>
+    //         </div>
             
-            {/* User Profile Preview */}
-            <motion.button
-              onClick={handleGoToProfile}
-              className="flex items-center gap-2 bg-sidebar-accent/50 hover:bg-sidebar-accent/70 px-4 py-2 rounded-lg transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent overflow-hidden">
-                {user.profile_photo ? (
-                  <img src={user.profile_photo} alt={user.full_name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-primary-foreground font-bold text-sm">
-                    {user.full_name.charAt(0)}
-                  </div>
-                )}
-              </div>
-              <span className="text-sidebar-foreground font-medium hidden md:inline">{user.full_name}</span>
-            </motion.button>
-          </motion.div>
-        </div>
-      </div>
+    //         {/* User Profile Preview */}
+    //         <motion.button
+    //           onClick={handleGoToProfile}
+    //           className="flex items-center gap-2 bg-sidebar-accent/50 hover:bg-sidebar-accent/70 px-4 py-2 rounded-lg transition-colors"
+    //           whileHover={{ scale: 1.05 }}
+    //           whileTap={{ scale: 0.95 }}
+    //         >
+    //           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent overflow-hidden">
+    //             {user.profile_photo ? (
+    //               <img src={user.profile_photo} alt={user.full_name} className="w-full h-full object-cover" />
+    //             ) : (
+    //               <div className="w-full h-full flex items-center justify-center text-primary-foreground font-bold text-sm">
+    //                 {user.full_name.charAt(0)}
+    //               </div>
+    //             )}
+    //           </div>
+    //           <span className="text-sidebar-foreground font-medium hidden md:inline">{user.full_name}</span>
+    //         </motion.button>
+    //       </motion.div>
+    //     </div>
+    //   </div>
 
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Error Alert */}
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-destructive/10 border border-destructive/30 text-destructive px-4 py-3 rounded-lg mb-6 flex items-center gap-2"
-            >
-              <AlertTriangle className="w-5 h-5" />
-              <span>{error}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+    //   <div className="container mx-auto px-4 py-8 max-w-7xl">
+    //     {/* Error Alert */}
+    //     <AnimatePresence>
+    //       {error && (
+    //         <motion.div
+    //           initial={{ opacity: 0, y: -20 }}
+    //           animate={{ opacity: 1, y: 0 }}
+    //           exit={{ opacity: 0, y: -20 }}
+    //           className="bg-destructive/10 border border-destructive/30 text-destructive px-4 py-3 rounded-lg mb-6 flex items-center gap-2"
+    //         >
+    //           <AlertTriangle className="w-5 h-5" />
+    //           <span>{error}</span>
+    //         </motion.div>
+    //       )}
+    //     </AnimatePresence>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* LEFT COLUMN - User Info & Ibadah Stats */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Welcome Card */}
-            <motion.div 
-              className="bg-card border border-border rounded-xl shadow-lg overflow-hidden"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <div className="border-b border-border px-6 py-4">
-                <h5 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Home className="w-5 h-5 text-primary" />
-                  Dashboard
-                </h5>
-              </div>
-              <div className="p-6">
-                <h1 className="text-2xl font-bold text-foreground mb-4">
-                  Welcome, {user.full_name}! 🌙
-                </h1>
+    //     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    //       {/* LEFT COLUMN - User Info & Ibadah Stats */}
+    //       <div className="lg:col-span-1 space-y-6">
+    //         {/* Welcome Card */}
+    //         <motion.div 
+    //           className="bg-card border border-border rounded-xl shadow-lg overflow-hidden"
+    //           initial={{ opacity: 0, y: 20 }}
+    //           animate={{ opacity: 1, y: 0 }}
+    //           transition={{ delay: 0.1 }}
+    //         >
+    //           <div className="border-b border-border px-6 py-4">
+    //             <h5 className="text-lg font-semibold text-foreground flex items-center gap-2">
+    //               <Home className="w-5 h-5 text-primary" />
+    //               Dashboard
+    //             </h5>
+    //           </div>
+    //           <div className="p-6">
+    //             <h1 className="text-2xl font-bold text-foreground mb-4">
+    //               Welcome, {user.full_name}! 🌙
+    //             </h1>
                 
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                    <Mail className="w-4 h-4 text-primary flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <span className="text-xs text-muted-foreground block">Email:</span>
-                      <span className="text-sm text-foreground font-medium truncate block">{user.email}</span>
-                    </div>
-                  </div>
+    //             <div className="space-y-3">
+    //               <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+    //                 <Mail className="w-4 h-4 text-primary flex-shrink-0" />
+    //                 <div className="min-w-0 flex-1">
+    //                   <span className="text-xs text-muted-foreground block">Email:</span>
+    //                   <span className="text-sm text-foreground font-medium truncate block">{user.email}</span>
+    //                 </div>
+    //               </div>
 
-                  {age !== null && (
-                    <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                      <Cake className="w-4 h-4 text-primary" />
-                      <div>
-                        <span className="text-xs text-muted-foreground block">Age:</span>
-                        <span className="text-sm text-foreground font-medium">{age} years</span>
-                      </div>
-                    </div>
-                  )}
+    //               {age !== null && (
+    //                 <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+    //                   <Cake className="w-4 h-4 text-primary" />
+    //                   <div>
+    //                     <span className="text-xs text-muted-foreground block">Age:</span>
+    //                     <span className="text-sm text-foreground font-medium">{age} years</span>
+    //                   </div>
+    //                 </div>
+    //               )}
 
-                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                    <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <span className="text-xs text-muted-foreground block">Date:</span>
-                      <span className="text-xs text-foreground font-medium">{currentDate}</span>
-                    </div>
-                  </div>
-                </div>
+    //               <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+    //                 <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
+    //                 <div className="min-w-0 flex-1">
+    //                   <span className="text-xs text-muted-foreground block">Date:</span>
+    //                   <span className="text-xs text-foreground font-medium">{currentDate}</span>
+    //                 </div>
+    //               </div>
+    //             </div>
 
-                <div className="flex gap-2 mt-4">
-                  <motion.button
-                    onClick={handleGoToProfile}
-                    className="flex-1 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors flex items-center justify-center gap-2"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <UserCircle className="w-4 h-4" />
-                    Profile
-                  </motion.button>
+    //             <div className="flex gap-2 mt-4">
+    //               <motion.button
+    //                 onClick={handleGoToProfile}
+    //                 className="flex-1 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors flex items-center justify-center gap-2"
+    //                 whileHover={{ scale: 1.02 }}
+    //                 whileTap={{ scale: 0.98 }}
+    //               >
+    //                 <UserCircle className="w-4 h-4" />
+    //                 Profile
+    //               </motion.button>
 
-                  <motion.button
-                    onClick={handleLogout}
-                    className="flex-1 bg-muted text-muted-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-colors flex items-center justify-center gap-2"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Logout
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
+    //               <motion.button
+    //                 onClick={handleLogout}
+    //                 className="flex-1 bg-muted text-muted-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-colors flex items-center justify-center gap-2"
+    //                 whileHover={{ scale: 1.02 }}
+    //                 whileTap={{ scale: 0.98 }}
+    //               >
+    //                 <LogOut className="w-4 h-4" />
+    //                 Logout
+    //               </motion.button>
+    //             </div>
+    //           </div>
+    //         </motion.div>
 
-            {/* Ibadah Stats Card */}
-            <motion.div 
-              className="bg-card border border-border rounded-xl shadow-lg overflow-hidden"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <div className="border-b border-border px-6 py-4">
-                <h5 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Award className="w-5 h-5 text-primary" />
-                  My Ibadah Stats
-                </h5>
-              </div>
-              <div className="p-6">
-                <div className="h-64 mb-4">
-                  <Doughnut data={ibadahChartData} options={chartOptions} />
-                </div>
+    //         {/* Ibadah Stats Card */}
+    //         <motion.div 
+    //           className="bg-card border border-border rounded-xl shadow-lg overflow-hidden"
+    //           initial={{ opacity: 0, y: 20 }}
+    //           animate={{ opacity: 1, y: 0 }}
+    //           transition={{ delay: 0.2 }}
+    //         >
+    //           <div className="border-b border-border px-6 py-4">
+    //             <h5 className="text-lg font-semibold text-foreground flex items-center gap-2">
+    //               <Award className="w-5 h-5 text-primary" />
+    //               My Ibadah Stats
+    //             </h5>
+    //           </div>
+    //           <div className="p-6">
+    //             <div className="h-64 mb-4">
+    //               <Doughnut data={ibadahChartData} options={chartOptions} />
+    //             </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-amber-500/10 p-3 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-amber-500">{ibadahStats.prayers_completed}</div>
-                    <div className="text-xs text-muted-foreground">Prayers</div>
-                  </div>
-                  <div className="bg-green-500/10 p-3 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-green-500">{ibadahStats.dhikr_count}</div>
-                    <div className="text-xs text-muted-foreground">Dhikr</div>
-                  </div>
-                  <div className="bg-blue-500/10 p-3 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-blue-500">{ibadahStats.tilawah_pages}</div>
-                    <div className="text-xs text-muted-foreground">Pages</div>
-                  </div>
-                  <div className="bg-purple-500/10 p-3 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-purple-500">{ibadahStats.fasting_days}</div>
-                    <div className="text-xs text-muted-foreground">Fasts</div>
-                  </div>
-                </div>
+    //             <div className="grid grid-cols-2 gap-3">
+    //               <div className="bg-amber-500/10 p-3 rounded-lg text-center">
+    //                 <div className="text-2xl font-bold text-amber-500">{ibadahStats.prayers_completed}</div>
+    //                 <div className="text-xs text-muted-foreground">Prayers</div>
+    //               </div>
+    //               <div className="bg-green-500/10 p-3 rounded-lg text-center">
+    //                 <div className="text-2xl font-bold text-green-500">{ibadahStats.dhikr_count}</div>
+    //                 <div className="text-xs text-muted-foreground">Dhikr</div>
+    //               </div>
+    //               <div className="bg-blue-500/10 p-3 rounded-lg text-center">
+    //                 <div className="text-2xl font-bold text-blue-500">{ibadahStats.tilawah_pages}</div>
+    //                 <div className="text-xs text-muted-foreground">Pages</div>
+    //               </div>
+    //               <div className="bg-purple-500/10 p-3 rounded-lg text-center">
+    //                 <div className="text-2xl font-bold text-purple-500">{ibadahStats.fasting_days}</div>
+    //                 <div className="text-xs text-muted-foreground">Fasts</div>
+    //               </div>
+    //             </div>
 
-                <div className="mt-4 p-3 bg-primary/10 rounded-lg text-center">
-                  <div className="text-3xl font-bold text-primary">{ibadahStats.total_points}</div>
-                  <div className="text-sm text-muted-foreground">Total Points</div>
-                </div>
-              </div>
-            </motion.div>
+    //             <div className="mt-4 p-3 bg-primary/10 rounded-lg text-center">
+    //               <div className="text-3xl font-bold text-primary">{ibadahStats.total_points}</div>
+    //               <div className="text-sm text-muted-foreground">Total Points</div>
+    //             </div>
+    //           </div>
+    //         </motion.div>
 
-            {/* Leaderboard */}
-            <motion.div 
-              className="bg-card border border-border rounded-xl shadow-lg overflow-hidden"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="border-b border-border px-6 py-4">
-                <h5 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                  Leaderboard
-                </h5>
-              </div>
-              <div className="p-6">
-                {leaderboard.length === 0 ? (
-                  <p className="text-center text-muted-foreground text-sm">No data yet</p>
-                ) : (
-                  <div className="space-y-2">
-                    {leaderboard.map((leader, index) => (
-                      <motion.div
-                        key={leader.id}
-                        className="flex items-center gap-3 p-2 bg-muted/30 rounded-lg"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.4 + index * 0.05 }}
-                      >
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                          index === 0 ? 'bg-amber-500 text-white' :
-                          index === 1 ? 'bg-gray-400 text-white' :
-                          index === 2 ? 'bg-orange-600 text-white' :
-                          'bg-muted text-foreground'
-                        }`}>
-                          {index + 1}
-                        </div>
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent overflow-hidden">
-                          {leader.profile_photo ? (
-                            <img src={leader.profile_photo} alt={leader.full_name} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-primary-foreground font-bold text-sm">
-                              {leader.full_name.charAt(0)}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{leader.full_name}</p>
-                        </div>
-                        <div className="text-sm font-bold text-primary">{leader.total_points}</div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
+    //         {/* Leaderboard */}
+    //         <motion.div 
+    //           className="bg-card border border-border rounded-xl shadow-lg overflow-hidden"
+    //           initial={{ opacity: 0, y: 20 }}
+    //           animate={{ opacity: 1, y: 0 }}
+    //           transition={{ delay: 0.3 }}
+    //         >
+    //           <div className="border-b border-border px-6 py-4">
+    //             <h5 className="text-lg font-semibold text-foreground flex items-center gap-2">
+    //               <TrendingUp className="w-5 h-5 text-primary" />
+    //               Leaderboard
+    //             </h5>
+    //           </div>
+    //           <div className="p-6">
+    //             {leaderboard.length === 0 ? (
+    //               <p className="text-center text-muted-foreground text-sm">No data yet</p>
+    //             ) : (
+    //               <div className="space-y-2">
+    //                 {leaderboard.map((leader, index) => (
+    //                   <motion.div
+    //                     key={leader.id}
+    //                     className="flex items-center gap-3 p-2 bg-muted/30 rounded-lg"
+    //                     initial={{ opacity: 0, x: -20 }}
+    //                     animate={{ opacity: 1, x: 0 }}
+    //                     transition={{ delay: 0.4 + index * 0.05 }}
+    //                   >
+    //                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+    //                       index === 0 ? 'bg-amber-500 text-white' :
+    //                       index === 1 ? 'bg-gray-400 text-white' :
+    //                       index === 2 ? 'bg-orange-600 text-white' :
+    //                       'bg-muted text-foreground'
+    //                     }`}>
+    //                       {index + 1}
+    //                     </div>
+    //                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent overflow-hidden">
+    //                       {leader.profile_photo ? (
+    //                         <img src={leader.profile_photo} alt={leader.full_name} className="w-full h-full object-cover" />
+    //                       ) : (
+    //                         <div className="w-full h-full flex items-center justify-center text-primary-foreground font-bold text-sm">
+    //                           {leader.full_name.charAt(0)}
+    //                         </div>
+    //                       )}
+    //                     </div>
+    //                     <div className="flex-1 min-w-0">
+    //                       <p className="text-sm font-medium text-foreground truncate">{leader.full_name}</p>
+    //                     </div>
+    //                     <div className="text-sm font-bold text-primary">{leader.total_points}</div>
+    //                   </motion.div>
+    //                 ))}
+    //               </div>
+    //             )}
+    //           </div>
+    //         </motion.div>
+    //       </div>
 
-          {/* RIGHT COLUMN - Posts Feed */}
-          <div className="lg:col-span-2">
-            <motion.div 
-              className="bg-card border border-border rounded-xl shadow-lg"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <div className="border-b border-border px-6 py-4 flex items-center justify-between">
-                <h5 className="text-lg font-semibold text-foreground flex items-center gap-2">
+    //       {/* RIGHT COLUMN - Posts Feed */}
+    //       <div className="lg:col-span-2">
+    //         <motion.div 
+    //           className="bg-card border border-border rounded-xl shadow-lg"
+    //           initial={{ opacity: 0, y: 20 }}
+    //           animate={{ opacity: 1, y: 0 }}
+    //           transition={{ delay: 0.4 }}
+    //         >
+    //           <div className="border-b border-border px-6 py-4 flex items-center justify-between">
+    //             <h5 className="text-lg font-semibold text-foreground flex items-center gap-2">
+    //             </div>
+) }
