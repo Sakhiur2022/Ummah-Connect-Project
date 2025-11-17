@@ -36,6 +36,9 @@ import {
   LineElement,
   Title
 } from 'chart.js'
+import Header from '@/components/ui/header'
+import { IslamicBackground } from '@/components/islamic-background'
+import { ProfileAnimatedBackground } from '@/components/background/profile-animated-background'
 
 // Register Chart.js components
 ChartJS.register(
@@ -106,407 +109,410 @@ const CrescentIcon: React.FC<{ className?: string }> = ({ className }) => (
 )
 
 export default function Dashboard() {
-  const router = useRouter()
-  const [user, setUser] = useState<UserData | null>(null)
-  const [posts, setPosts] = useState<Post[]>([])
-  const [ibadahStats, setIbadahStats] = useState<IbadahStats>({
-    prayers_completed: 0,
-    dhikr_count: 0,
-    tilawah_pages: 0,
-    fasting_days: 0,
-    total_points: 0
-  })
-  const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([])
-  const [loading, setLoading] = useState(true)
-  const [postsLoading, setPostsLoading] = useState(false)
-  const [currentDate, setCurrentDate] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  // const router = useRouter()
+  // const [user, setUser] = useState<UserData | null>(null)
+  // const [posts, setPosts] = useState<Post[]>([])
+  // const [ibadahStats, setIbadahStats] = useState<IbadahStats>({
+  //   prayers_completed: 0,
+  //   dhikr_count: 0,
+  //   tilawah_pages: 0,
+  //   fasting_days: 0,
+  //   total_points: 0
+  // })
+  // const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([])
+  // const [loading, setLoading] = useState(true)
+  // const [postsLoading, setPostsLoading] = useState(false)
+  // const [currentDate, setCurrentDate] = useState('')
+  // const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    // Set current date
-    const today = new Date()
-    setCurrentDate(today.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    }))
+  // useEffect(() => {
+  //   // Set current date
+  //   const today = new Date()
+  //   setCurrentDate(today.toLocaleDateString('en-US', { 
+  //     weekday: 'long', 
+  //     year: 'numeric', 
+  //     month: 'long', 
+  //     day: 'numeric' 
+  //   }))
 
-    // Check authentication and fetch data
-    checkAuthAndFetchData()
-  }, [])
+  //   // Check authentication and fetch data
+  //   checkAuthAndFetchData()
+  // }, [])
 
-  const checkAuthAndFetchData = async () => {
-    try {
-      setError(null)
-      // Check if user is authenticated
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+  // const checkAuthAndFetchData = async () => {
+  //   try {
+  //     setError(null)
+  //     // Check if user is authenticated
+  //     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
 
-      if (authError || !authUser) {
-        router.push('/login')
-        return
-      }
+  //     if (authError || !authUser) {
+  //       router.push('/login')
+  //       return
+  //     }
 
-      // Fetch user data
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', authUser.id)
-        .single()
+  //     // Fetch user data
+  //     const { data: userData, error: userError } = await supabase
+  //       .from('users')
+  //       .select('*')
+  //       .eq('id', authUser.id)
+  //       .single()
 
-      if (userError) throw userError
+  //     if (userError) throw userError
 
-      setUser(userData)
+  //     setUser(userData)
 
-      // Fetch all dashboard data in parallel
-      await Promise.all([
-        fetchFriendsPosts(authUser.id),
-        fetchIbadahStats(authUser.id),
-        fetchLeaderboard()
-      ])
+  //     // Fetch all dashboard data in parallel
+  //     await Promise.all([
+  //       fetchFriendsPosts(authUser.id),
+  //       fetchIbadahStats(authUser.id),
+  //       fetchLeaderboard()
+  //     ])
 
-    } catch (error) {
-      console.error('Error fetching data:', error)
-      setError('Failed to load dashboard data')
-    } finally {
-      setLoading(false)
-    }
-  }
+  //   } catch (error) {
+  //     console.error('Error fetching data:', error)
+  //     setError('Failed to load dashboard data')
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
 
-  const fetchIbadahStats = async (userId: string) => {
-    try {
-      // Fetch salah records
-      const { data: salahData } = await supabase
-        .from('salah_record')
-        .select('*')
-        .eq('user_id', userId)
+  // const fetchIbadahStats = async (userId: string) => {
+  //   try {
+  //     // Fetch salah records
+  //     const { data: salahData } = await supabase
+  //       .from('salah_record')
+  //       .select('*')
+  //       .eq('user_id', userId)
 
-      // Fetch dhikr records
-      const { data: dhikrData } = await supabase
-        .from('dhikr_record')
-        .select('count')
-        .eq('user_id', userId)
+  //     // Fetch dhikr records
+  //     const { data: dhikrData } = await supabase
+  //       .from('dhikr_record')
+  //       .select('count')
+  //       .eq('user_id', userId)
 
-      // Fetch tilawah records
-      const { data: tilawahData } = await supabase
-        .from('tilawah_record')
-        .select('pages_read')
-        .eq('user_id', userId)
+  //     // Fetch tilawah records
+  //     const { data: tilawahData } = await supabase
+  //       .from('tilawah_record')
+  //       .select('pages_read')
+  //       .eq('user_id', userId)
 
-      // Fetch point log for total points
-      const { data: pointData } = await supabase
-        .from('point_log')
-        .select('points')
-        .eq('user_id', userId)
+  //     // Fetch point log for total points
+  //     const { data: pointData } = await supabase
+  //       .from('point_log')
+  //       .select('points')
+  //       .eq('user_id', userId)
 
-      const prayersCompleted = salahData?.length || 0
-      const dhikrCount = dhikrData?.reduce((sum, record) => sum + (record.count || 0), 0) || 0
-      const tilawahPages = tilawahData?.reduce((sum, record) => sum + (record.pages_read || 0), 0) || 0
-      const totalPoints = pointData?.reduce((sum, record) => sum + (record.points || 0), 0) || 0
+  //     const prayersCompleted = salahData?.length || 0
+  //     const dhikrCount = dhikrData?.reduce((sum, record) => sum + (record.count || 0), 0) || 0
+  //     const tilawahPages = tilawahData?.reduce((sum, record) => sum + (record.pages_read || 0), 0) || 0
+  //     const totalPoints = pointData?.reduce((sum, record) => sum + (record.points || 0), 0) || 0
 
-      // Count fasting days from ibadah_session
-      const { data: fastingData } = await supabase
-        .from('ibadah_session')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('type', 'fasting')
+  //     // Count fasting days from ibadah_session
+  //     const { data: fastingData } = await supabase
+  //       .from('ibadah_session')
+  //       .select('*')
+  //       .eq('user_id', userId)
+  //       .eq('type', 'fasting')
 
-      const fastingDays = fastingData?.length || 0
+  //     const fastingDays = fastingData?.length || 0
 
-      setIbadahStats({
-        prayers_completed: prayersCompleted,
-        dhikr_count: dhikrCount,
-        tilawah_pages: tilawahPages,
-        fasting_days: fastingDays,
-        total_points: totalPoints
-      })
+  //     setIbadahStats({
+  //       prayers_completed: prayersCompleted,
+  //       dhikr_count: dhikrCount,
+  //       tilawah_pages: tilawahPages,
+  //       fasting_days: fastingDays,
+  //       total_points: totalPoints
+  //     })
 
-    } catch (error) {
-      console.error('Error fetching ibadah stats:', error)
-    }
-  }
+  //   } catch (error) {
+  //     console.error('Error fetching ibadah stats:', error)
+  //   }
+  // }
 
-  const fetchLeaderboard = async () => {
-    try {
-      // Get top 10 users by points
-      const { data: leaderboardData, error } = await supabase
-        .rpc('get_leaderboard', { limit_count: 10 })
+  // const fetchLeaderboard = async () => {
+  //   try {
+  //     // Get top 10 users by points
+  //     const { data: leaderboardData, error } = await supabase
+  //       .rpc('get_leaderboard', { limit_count: 10 })
 
-      if (error) {
-        // Fallback: manual query if RPC doesn't exist
-        const { data: usersWithPoints } = await supabase
-          .from('users')
-          .select(`
-            id,
-            full_name,
-            profile_photo
-          `)
-          .limit(10)
+  //     if (error) {
+  //       // Fallback: manual query if RPC doesn't exist
+  //       const { data: usersWithPoints } = await supabase
+  //         .from('users')
+  //         .select(`
+  //           id,
+  //           full_name,
+  //           profile_photo
+  //         `)
+  //         .limit(10)
 
-        if (usersWithPoints) {
-          // Get points for each user
-          const leaderboardWithPoints = await Promise.all(
-            usersWithPoints.map(async (user, index) => {
-              const { data: pointData } = await supabase
-                .from('point_log')
-                .select('points')
-                .eq('user_id', user.id)
+  //       if (usersWithPoints) {
+  //         // Get points for each user
+  //         const leaderboardWithPoints = await Promise.all(
+  //           usersWithPoints.map(async (user, index) => {
+  //             const { data: pointData } = await supabase
+  //               .from('point_log')
+  //               .select('points')
+  //               .eq('user_id', user.id)
 
-              const totalPoints = pointData?.reduce((sum, record) => sum + (record.points || 0), 0) || 0
+  //             const totalPoints = pointData?.reduce((sum, record) => sum + (record.points || 0), 0) || 0
 
-              return {
-                ...user,
-                total_points: totalPoints,
-                rank: index + 1
-              }
-            })
-          )
+  //             return {
+  //               ...user,
+  //               total_points: totalPoints,
+  //               rank: index + 1
+  //             }
+  //           })
+  //         )
 
-          // Sort by points
-          const sorted = leaderboardWithPoints.sort((a, b) => b.total_points - a.total_points)
-          setLeaderboard(sorted.slice(0, 10))
-        }
-      } else {
-        setLeaderboard(leaderboardData || [])
-      }
+  //         // Sort by points
+  //         const sorted = leaderboardWithPoints.sort((a, b) => b.total_points - a.total_points)
+  //         setLeaderboard(sorted.slice(0, 10))
+  //       }
+  //     } else {
+  //       setLeaderboard(leaderboardData || [])
+  //     }
 
-    } catch (error) {
-      console.error('Error fetching leaderboard:', error)
-    }
-  }
+  //   } catch (error) {
+  //     console.error('Error fetching leaderboard:', error)
+  //   }
+  // }
 
-  const fetchFriendsPosts = async (userId: string) => {
-    try {
-      setPostsLoading(true)
-      setError(null)
+  // const fetchFriendsPosts = async (userId: string) => {
+  //   try {
+  //     setPostsLoading(true)
+  //     setError(null)
 
-      // Get user's friends
-      const { data: friends, error: friendsError } = await supabase
-        .from('friends')
-        .select('friend_id')
-        .eq('user_id', userId)
-        .eq('status', 'accepted')
+  //     // Get user's friends
+  //     const { data: friends, error: friendsError } = await supabase
+  //       .from('friends')
+  //       .select('friend_id')
+  //       .eq('user_id', userId)
+  //       .eq('status', 'accepted')
 
-      if (friendsError) throw friendsError
+  //     if (friendsError) throw friendsError
 
-      const friendIds = friends?.map(f => f.friend_id) || []
+  //     const friendIds = friends?.map(f => f.friend_id) || []
 
-      if (friendIds.length === 0) {
-        setPosts([])
-        setPostsLoading(false)
-        return
-      }
+  //     if (friendIds.length === 0) {
+  //       setPosts([])
+  //       setPostsLoading(false)
+  //       return
+  //     }
 
-      // Fetch posts from friends with user info
-      const { data: postsData, error: postsError } = await supabase
-        .from('posts')
-        .select(`
-          id,
-          content,
-          creator_id,
-          created_at,
-          users!posts_creator_id_fkey (
-            full_name,
-            username,
-            profile_photo
-          )
-        `)
-        .in('creator_id', friendIds)
-        .order('created_at', { ascending: false })
-        .limit(20)
+  //     // Fetch posts from friends with user info
+  //     const { data: postsData, error: postsError } = await supabase
+  //       .from('posts')
+  //       .select(`
+  //         id,
+  //         content,
+  //         creator_id,
+  //         created_at,
+  //         users!posts_creator_id_fkey (
+  //           full_name,
+  //           username,
+  //           profile_photo
+  //         )
+  //       `)
+  //       .in('creator_id', friendIds)
+  //       .order('created_at', { ascending: false })
+  //       .limit(20)
 
-      if (postsError) throw postsError
+  //     if (postsError) throw postsError
 
-      // Fetch likes and comments counts separately for each post
-      const postsWithCounts = await Promise.all(
-        (postsData || []).map(async (post) => {
-          // Get likes count
-          const { count: likesCount } = await supabase
-            .from('post_reactions')
-            .select('*', { count: 'exact', head: true })
-            .eq('post_id', post.id)
+  //     // Fetch likes and comments counts separately for each post
+  //     const postsWithCounts = await Promise.all(
+  //       (postsData || []).map(async (post) => {
+  //         // Get likes count
+  //         const { count: likesCount } = await supabase
+  //           .from('post_reactions')
+  //           .select('*', { count: 'exact', head: true })
+  //           .eq('post_id', post.id)
 
-          // Get comments count
-          const { count: commentsCount } = await supabase
-            .from('post_comments')
-            .select('*', { count: 'exact', head: true })
-            .eq('post_id', post.id)
+  //         // Get comments count
+  //         const { count: commentsCount } = await supabase
+  //           .from('post_comments')
+  //           .select('*', { count: 'exact', head: true })
+  //           .eq('post_id', post.id)
 
-          // Fix: Properly handle the users object (it's an array, take first element)
-          const userInfo = Array.isArray(post.users) && post.users.length > 0 
-            ? post.users[0] 
-            : post.users
+  //         // Fix: Properly handle the users object (it's an array, take first element)
+  //         const userInfo = Array.isArray(post.users) && post.users.length > 0 
+  //           ? post.users[0] 
+  //           : post.users
 
-          return {
-            id: post.id,
-            content: post.content,
-            creator_id: post.creator_id,
-            created_at: post.created_at,
-            users: userInfo as PostUser | null,
-            likes_count: likesCount || 0,
-            comments_count: commentsCount || 0
-          }
-        })
-      )
+  //         return {
+  //           id: post.id,
+  //           content: post.content,
+  //           creator_id: post.creator_id,
+  //           created_at: post.created_at,
+  //           users: userInfo as PostUser | null,
+  //           likes_count: likesCount || 0,
+  //           comments_count: commentsCount || 0
+  //         }
+  //       })
+  //     )
 
-      setPosts(postsWithCounts)
+  //     setPosts(postsWithCounts)
 
-    } catch (error) {
-      console.error('Error fetching posts:', error)
-      setError('Failed to load posts')
-      setPosts([])
-    } finally {
-      setPostsLoading(false)
-    }
-  }
+  //   } catch (error) {
+  //     console.error('Error fetching posts:', error)
+  //     setError('Failed to load posts')
+  //     setPosts([])
+  //   } finally {
+  //     setPostsLoading(false)
+  //   }
+  // }
 
-  const calculateAge = (dob: string | null): number | null => {
-    if (!dob) return null
-    const birthDate = new Date(dob)
-    const today = new Date()
-    let age = today.getFullYear() - birthDate.getFullYear()
-    const monthDiff = today.getMonth() - birthDate.getMonth()
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--
-    }
-    return age
-  }
+  // const calculateAge = (dob: string | null): number | null => {
+  //   if (!dob) return null
+  //   const birthDate = new Date(dob)
+  //   const today = new Date()
+  //   let age = today.getFullYear() - birthDate.getFullYear()
+  //   const monthDiff = today.getMonth() - birthDate.getMonth()
+  //   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+  //     age--
+  //   }
+  //   return age
+  // }
 
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut()
-      router.push('/login')
-    } catch (error) {
-      console.error('Logout error:', error)
-    }
-  }
+  // const handleLogout = async () => {
+  //   try {
+  //     await supabase.auth.signOut()
+  //     router.push('/login')
+  //   } catch (error) {
+  //     console.error('Logout error:', error)
+  //   }
+  // }
 
-  const handleGoToProfile = () => {
-    if (user?.id) {
-      router.push(`/profile/${user.id}`)
-    }
-  }
+  // const handleGoToProfile = () => {
+  //   if (user?.id) {
+  //     router.push(`/profile/${user.id}`)
+  //   }
+  // }
 
-  const handleRefreshPosts = async () => {
-    if (user?.id) {
-      await fetchFriendsPosts(user.id)
-    }
-  }
+  // const handleRefreshPosts = async () => {
+  //   if (user?.id) {
+  //     await fetchFriendsPosts(user.id)
+  //   }
+  // }
 
-  const formatRelativeTime = (dateString: string): string => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
+  // const formatRelativeTime = (dateString: string): string => {
+  //   const date = new Date(dateString)
+  //   const now = new Date()
+  //   const diffMs = now.getTime() - date.getTime()
+  //   const diffMins = Math.floor(diffMs / 60000)
+  //   const diffHours = Math.floor(diffMs / 3600000)
+  //   const diffDays = Math.floor(diffMs / 86400000)
 
-    if (diffMins < 1) return 'Just now'
-    if (diffMins < 60) return `${diffMins}m ago`
-    if (diffHours < 24) return `${diffHours}h ago`
-    if (diffDays < 7) return `${diffDays}d ago`
-    return date.toLocaleDateString()
-  }
+  //   if (diffMins < 1) return 'Just now'
+  //   if (diffMins < 60) return `${diffMins}m ago`
+  //   if (diffHours < 24) return `${diffHours}h ago`
+  //   if (diffDays < 7) return `${diffDays}d ago`
+  //   return date.toLocaleDateString()
+  // }
 
-  // Chart.js data for Ibadah Stats
-  const ibadahChartData = {
-    labels: ['Prayers', 'Dhikr (x100)', 'Tilawah', 'Fasting'],
-    datasets: [{
-      label: 'Ibadah Progress',
-      data: [
-        ibadahStats.prayers_completed,
-        Math.floor(ibadahStats.dhikr_count / 100),
-        ibadahStats.tilawah_pages,
-        ibadahStats.fasting_days
-      ],
-      backgroundColor: [
-        'rgba(251, 191, 36, 0.8)',
-        'rgba(34, 197, 94, 0.8)',
-        'rgba(59, 130, 246, 0.8)',
-        'rgba(168, 85, 247, 0.8)'
-      ],
-      borderColor: [
-        'rgb(251, 191, 36)',
-        'rgb(34, 197, 94)',
-        'rgb(59, 130, 246)',
-        'rgb(168, 85, 247)'
-      ],
-      borderWidth: 2
-    }]
-  }
+  // // Chart.js data for Ibadah Stats
+  // const ibadahChartData = {
+  //   labels: ['Prayers', 'Dhikr (x100)', 'Tilawah', 'Fasting'],
+  //   datasets: [{
+  //     label: 'Ibadah Progress',
+  //     data: [
+  //       ibadahStats.prayers_completed,
+  //       Math.floor(ibadahStats.dhikr_count / 100),
+  //       ibadahStats.tilawah_pages,
+  //       ibadahStats.fasting_days
+  //     ],
+  //     backgroundColor: [
+  //       'rgba(251, 191, 36, 0.8)',
+  //       'rgba(34, 197, 94, 0.8)',
+  //       'rgba(59, 130, 246, 0.8)',
+  //       'rgba(168, 85, 247, 0.8)'
+  //     ],
+  //     borderColor: [
+  //       'rgb(251, 191, 36)',
+  //       'rgb(34, 197, 94)',
+  //       'rgb(59, 130, 246)',
+  //       'rgb(168, 85, 247)'
+  //     ],
+  //     borderWidth: 2
+  //   }]
+  // }
 
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom' as const,
-        labels: {
-          color: 'rgb(148, 163, 184)',
-          font: { size: 12 }
-        }
-      }
-    }
-  }
+  // const chartOptions = {
+  //   responsive: true,
+  //   maintainAspectRatio: false,
+  //   plugins: {
+  //     legend: {
+  //       position: 'bottom' as const,
+  //       labels: {
+  //         color: 'rgb(148, 163, 184)',
+  //         font: { size: 12 }
+  //       }
+  //     }
+  //   }
+  // }
 
-  // Loading State
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <motion.div
-          className="flex flex-col items-center gap-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </motion.div>
-      </div>
-    )
-  }
+  // // Loading State
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen bg-background flex items-center justify-center">
+  //       <motion.div
+  //         className="flex flex-col items-center gap-4"
+  //         initial={{ opacity: 0 }}
+  //         animate={{ opacity: 1 }}
+  //       >
+  //         <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+  //         <p className="text-muted-foreground">Loading dashboard...</p>
+  //       </motion.div>
+  //     </div>
+  //   )
+  // }
 
-  // Not Authenticated
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <motion.div 
-          className="max-w-md w-full"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="bg-card border border-border rounded-xl p-8 text-center shadow-lg">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-            >
-              <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
-            </motion.div>
-            <h3 className="text-2xl font-bold text-foreground mb-2">User not found</h3>
-            <p className="text-muted-foreground mb-6">
-              Please login to access your dashboard.
-            </p>
-            <motion.button
-              onClick={() => router.push('/login')}
-              className="w-full bg-primary text-primary-foreground py-3 px-6 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <LogOut className="w-5 h-5" />
-              Login
-            </motion.button>
-          </div>
-        </motion.div>
-      </div>
-    )
-  }
+  // // Not Authenticated
+  // if (!user) {
+  //   return (
+  //     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+  //       <motion.div 
+  //         className="max-w-md w-full"
+  //         initial={{ opacity: 0, y: 20 }}
+  //         animate={{ opacity: 1, y: 0 }}
+  //       >
+  //         <div className="bg-card border border-border rounded-xl p-8 text-center shadow-lg">
+  //           <motion.div
+  //             initial={{ scale: 0 }}
+  //             animate={{ scale: 1 }}
+  //             transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+  //           >
+  //             <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
+  //           </motion.div>
+  //           <h3 className="text-2xl font-bold text-foreground mb-2">User not found</h3>
+  //           <p className="text-muted-foreground mb-6">
+  //             Please login to access your dashboard.
+  //           </p>
+  //           <motion.button
+  //             onClick={() => router.push('/login')}
+  //             className="w-full bg-primary text-primary-foreground py-3 px-6 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+  //             whileHover={{ scale: 1.02 }}
+  //             whileTap={{ scale: 0.98 }}
+  //           >
+  //             <LogOut className="w-5 h-5" />
+  //             Login
+  //           </motion.button>
+  //         </div>
+  //       </motion.div>
+  //     </div>
+  //   )
+  // }
 
-  const age = calculateAge(user.date_of_birth)
+  // const age = calculateAge(user.date_of_birth)
 
   return (
-    <div>
+    <>
+      <Header/>
+      <ProfileAnimatedBackground/>
       Saif Ahmed Bro pls fix this....
-    </div>
+    </>
+    
     // <div className="min-h-screen bg-background">
     //   Header with Islamic Pattern
     //   <div className="relative bg-gradient-to-r from-sidebar via-sidebar-accent to-sidebar overflow-hidden">
