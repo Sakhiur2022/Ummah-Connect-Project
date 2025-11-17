@@ -159,8 +159,8 @@ export default function Header() {
     },
     {
       icon: MessageCircle,
-      label: "Messages",
-      href: "/messages",
+      label: "Messenger",
+      href: "/messenger",
       badge: messages,
     },
     {
