@@ -48,7 +48,7 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
       if (error) {
         console.error('Error fetching conversations:', error);
       } else {
-        setConversations(data || []);
+        setConversations((data as Conversation[]) || []);
       }
       setLoading(false);
     };
@@ -66,14 +66,14 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
     setIsSearching(true);
 
     const { data, error } = await supabase
-      .from('users') // Your 'users' table is correct
+      .from('users')
       .select('id, username, full_name, profile_image')
       .ilike('username', `%${searchQuery}%`);
 
     if (error) {
       console.error('Search error:', error);
     } else {
-      setSearchResults(data || []);
+      setSearchResults((data as UserResult[]) || []);
     }
   };
 
@@ -90,7 +90,7 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full">
       {/* Header & Search Bar */}
       <div className="p-4 border-b border-gray-700">
         <h2 className="text-xl font-bold mb-3">Messages</h2>
@@ -112,11 +112,7 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
       </div>
 
       {/* List Area */}
-      <div className="flex-grow">
-        {/*
-          We show Search Results *if* the user is searching
-          Otherwise, we show the Conversation List
-        */}
+      <div className="flex-grow overflow-y-auto">
         {isSearching ? (
           // --- SEARCH RESULTS ---
           <div>
