@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import ChatList from '@/components/messenger/ChatList';
 import ChatBox from '@/components/messenger/ChatBox';
+import Header from '@/components/ui/header';
 // We don't need supabase client here anymore since we aren't searching in this file
 // import { createClient } from '@/lib/supabase/client'; 
 
@@ -22,7 +23,7 @@ export default function MessengerPage() {
   return (
     // Changed h-full to h-screen to ensure it takes the full viewport height
     <div className="flex flex-col h-screen bg-gray-900 text-white">
-      
+     <Header/> 
       <div className="flex flex-grow overflow-hidden">
         {/* Sidebar */}
         <div className="w-full md:w-1/3 border-r border-gray-700 overflow-y-auto">
