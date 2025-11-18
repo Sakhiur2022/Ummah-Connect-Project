@@ -26,8 +26,14 @@ export default function ChatBox({ selectedUserId }: ChatBoxProps) {
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
+  // Debug logs to detect identity problems
+  useEffect(() => {
+    console.log('[ChatBox] current user:', user?.id);
+    console.log('[ChatBox] selectedUserId:', selectedUserId);
+  }, [user, selectedUserId]);
+
   // -------------------------------------------------
-  // FETCH MESSAGE HISTORY (FIXED)
+  // FETCH MESSAGE HISTORY
   // -------------------------------------------------
   const fetchMessages = useCallback(async () => {
     if (!user || !selectedUserId) return;
@@ -41,21 +47,41 @@ export default function ChatBox({ selectedUserId }: ChatBoxProps) {
       )
       .order('sent_at', { ascending: true });
 
-    if (error) console.error('Error fetching messages:', error);
-    else setMessages(data || []);
+    if (error) {
+      console.error('Error fetching messages:', error);
+      setMessages([]);
+    } else {
+      setMessages((data as Message[]) || []);
+    }
 
     setLoading(false);
   }, [user, selectedUserId]);
 
   // -------------------------------------------------
-  // SEND MESSAGE (works with optimistic UI)
+  // SEND MESSAGE (optimistic + reconcile)
   // -------------------------------------------------
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !user) return;
+    if (!newMessage.trim()) return;
 
-    const tempId = crypto.randomUUID();
-    const messageToSend: Message = {
+    // Defensive guards
+    if (!user?.id) {
+      console.error('[SendMessage] No authenticated user — aborting send.');
+      return;
+    }
+    if (!selectedUserId) {
+      console.error('[SendMessage] No selected user — aborting send.');
+      return;
+    }
+    if (selectedUserId === user.id) {
+      console.warn('[SendMessage] Attempt to send message to self (skipping).');
+      return;
+    }
+
+    console.log('[SendMessage] sending as', user.id, 'to', selectedUserId, 'content:', newMessage);
+
+    const tempId = crypto.randomUUID?.() ?? `temp-${Date.now()}`;
+    const optimistic: Message = {
       id: tempId,
       sender_id: user.id,
       receiver_id: selectedUserId,
@@ -64,17 +90,34 @@ export default function ChatBox({ selectedUserId }: ChatBoxProps) {
     };
 
     // Optimistic update
-    setMessages((prev) => [...prev, messageToSend]);
+    setMessages((prev) => [...prev, optimistic]);
     setNewMessage('');
 
-    const { error } = await supabase.from('MESSAGES').insert({
-      sender_id: messageToSend.sender_id,
-      receiver_id: messageToSend.receiver_id,
-      content: messageToSend.content,
-    });
+    try {
+      // Insert and request DB row(s) back to reconcile
+      const { data: insertedRows, error } = await supabase
+        .from('MESSAGES')
+        .insert({
+          sender_id: optimistic.sender_id,
+          receiver_id: optimistic.receiver_id,
+          content: optimistic.content,
+        })
+        .select('*');
 
-    if (error) {
-      console.error('Error sending message:', error);
+      if (error) {
+        console.error('Error sending message:', error);
+        // roll back optimistic
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        return;
+      }
+
+      const inserted = insertedRows?.[0] as Message | undefined;
+      if (inserted) {
+        // Replace optimistic with canonical DB row
+        setMessages((prev) => prev.map((m) => (m.id === tempId ? inserted : m)));
+      }
+    } catch (err) {
+      console.error('Unexpected error sending message:', err);
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
     }
   };
@@ -87,7 +130,7 @@ export default function ChatBox({ selectedUserId }: ChatBoxProps) {
   }, [messages]);
 
   // -------------------------------------------------
-  // REALTIME LISTENER (FIXED FILTER)
+  // REALTIME LISTENER (listen BOTH directions)
   // -------------------------------------------------
   useEffect(() => {
     fetchMessages();
@@ -102,10 +145,31 @@ export default function ChatBox({ selectedUserId }: ChatBoxProps) {
           event: 'INSERT',
           schema: 'public',
           table: 'MESSAGES',
-          filter: `and(receiver_id.eq.${user.id},sender_id.eq.${selectedUserId})`,
+          // listen to inserts where either (A->B) or (B->A)
+          filter: `or(
+            and(sender_id.eq.${user.id},receiver_id.eq.${selectedUserId}),
+            and(sender_id.eq.${selectedUserId},receiver_id.eq.${user.id})
+          )`,
         },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message]);
+          console.log('[Realtime] payload:', payload);
+          const newMsg = payload.new as Message | undefined;
+          if (!newMsg) return;
+
+          // Defensive: ensure the message is between these two users
+          const isRelated =
+            (newMsg.sender_id === user.id && newMsg.receiver_id === selectedUserId) ||
+            (newMsg.sender_id === selectedUserId && newMsg.receiver_id === user.id);
+          if (!isRelated) {
+            console.warn('[Realtime] Ignored unrelated message:', newMsg);
+            return;
+          }
+
+          // Avoid adding duplicates if the message's id already exists
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
+          });
         }
       )
       .subscribe();
@@ -166,10 +230,12 @@ export default function ChatBox({ selectedUserId }: ChatBoxProps) {
             onChange={(e) => setNewMessage(e.target.value)}
             className="flex-1 bg-gray-700 border border-gray-600 rounded-lg p-3 text-white focus:ring-blue-500 focus:border-blue-500"
             placeholder="Type a message..."
+            aria-label="Type a message"
           />
           <button
             type="submit"
             className="p-3 bg-blue-600 rounded-lg hover:bg-blue-500 transition-colors"
+            aria-label="Send message"
           >
             <Send className="w-5 h-5" />
           </button>
