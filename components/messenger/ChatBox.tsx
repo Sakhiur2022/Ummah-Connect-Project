@@ -15,6 +15,13 @@ type Message = {
   receiver_id: string;
 };
 
+type UserInfo = {
+  id: string;
+  full_name: string;
+  username: string;
+  profile_image?: string;
+};
+
 type ChatBoxProps = {
   selectedUserId: string;
 };
@@ -22,22 +29,31 @@ type ChatBoxProps = {
 export default function ChatBox({ selectedUserId }: ChatBoxProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [chatUser, setChatUser] = useState<UserInfo | null>(null);
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Debug logs to detect identity problems
+  // Fetch chat user info
   useEffect(() => {
-    console.log('[ChatBox] current user:', user?.id);
-    console.log('[ChatBox] selectedUserId:', selectedUserId);
-  }, [user, selectedUserId]);
+    if (!selectedUserId) return;
 
-  // -------------------------------------------------
-  // FETCH MESSAGE HISTORY
-  // -------------------------------------------------
+    const fetchUser = async () => {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, full_name, username, profile_image')
+        .eq('id', selectedUserId)
+        .single();
+
+      if (error) console.error('Error fetching chat user:', error);
+      else setChatUser(data);
+    };
+
+    fetchUser();
+  }, [selectedUserId]);
+
+  // Fetch message history
   const fetchMessages = useCallback(async () => {
     if (!user || !selectedUserId) return;
-    setLoading(true);
 
     const { data, error } = await supabase
       .from('MESSAGES')
@@ -47,41 +63,53 @@ export default function ChatBox({ selectedUserId }: ChatBoxProps) {
       )
       .order('sent_at', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching messages:', error);
-      setMessages([]);
-    } else {
-      setMessages((data as Message[]) || []);
-    }
-
-    setLoading(false);
+    if (error) console.error('Error fetching messages:', error);
+    else setMessages(data || []);
   }, [user, selectedUserId]);
 
-  // -------------------------------------------------
-  // SEND MESSAGE (optimistic + reconcile)
-  // -------------------------------------------------
+  useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
+
+  // Auto scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Realtime subscription (ignore own messages to prevent duplicates)
+  useEffect(() => {
+    if (!user || !selectedUserId) return;
+
+    const channel = supabase
+      .channel(`chat:${user.id}:${selectedUserId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'MESSAGES' },
+        (payload) => {
+          const newMsg = payload.new as Message;
+
+          // Ignore messages sent by current user
+          if (
+            newMsg.sender_id !== user.id &&
+            ((newMsg.sender_id === selectedUserId && newMsg.receiver_id === user.id) ||
+              (newMsg.sender_id === user.id && newMsg.receiver_id === selectedUserId))
+          ) {
+            setMessages((prev) => [...prev, newMsg]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [user, selectedUserId]);
+
+  // Send message
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !user) return;
 
-    // Defensive guards
-    if (!user?.id) {
-      console.error('[SendMessage] No authenticated user — aborting send.');
-      return;
-    }
-    if (!selectedUserId) {
-      console.error('[SendMessage] No selected user — aborting send.');
-      return;
-    }
-    if (selectedUserId === user.id) {
-      console.warn('[SendMessage] Attempt to send message to self (skipping).');
-      return;
-    }
-
-    console.log('[SendMessage] sending as', user.id, 'to', selectedUserId, 'content:', newMessage);
-
-    const tempId = crypto.randomUUID?.() ?? `temp-${Date.now()}`;
-    const optimistic: Message = {
+    const tempId = crypto.randomUUID();
+    const messageToSend: Message = {
       id: tempId,
       sender_id: user.id,
       receiver_id: selectedUserId,
@@ -90,109 +118,32 @@ export default function ChatBox({ selectedUserId }: ChatBoxProps) {
     };
 
     // Optimistic update
-    setMessages((prev) => [...prev, optimistic]);
+    setMessages((prev) => [...prev, messageToSend]);
     setNewMessage('');
 
-    try {
-      // Insert and request DB row(s) back to reconcile
-      const { data: insertedRows, error } = await supabase
-        .from('MESSAGES')
-        .insert({
-          sender_id: optimistic.sender_id,
-          receiver_id: optimistic.receiver_id,
-          content: optimistic.content,
-        })
-        .select('*');
+    const { error } = await supabase.from('MESSAGES').insert({
+      sender_id: messageToSend.sender_id,
+      receiver_id: messageToSend.receiver_id,
+      content: messageToSend.content,
+    });
 
-      if (error) {
-        console.error('Error sending message:', error);
-        // roll back optimistic
-        setMessages((prev) => prev.filter((m) => m.id !== tempId));
-        return;
-      }
-
-      const inserted = insertedRows?.[0] as Message | undefined;
-      if (inserted) {
-        // Replace optimistic with canonical DB row
-        setMessages((prev) => prev.map((m) => (m.id === tempId ? inserted : m)));
-      }
-    } catch (err) {
-      console.error('Unexpected error sending message:', err);
+    if (error) {
+      console.error('Error sending message:', error);
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
     }
   };
 
-  // -------------------------------------------------
-  // AUTO SCROLL TO BOTTOM
-  // -------------------------------------------------
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  // -------------------------------------------------
-  // REALTIME LISTENER (listen BOTH directions)
-  // -------------------------------------------------
-  useEffect(() => {
-    fetchMessages();
-
-    if (!user || !selectedUserId) return;
-
-    const channel = supabase
-      .channel(`messages:${user.id}:${selectedUserId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'MESSAGES',
-          // listen to inserts where either (A->B) or (B->A)
-          filter: `or(
-            and(sender_id.eq.${user.id},receiver_id.eq.${selectedUserId}),
-            and(sender_id.eq.${selectedUserId},receiver_id.eq.${user.id})
-          )`,
-        },
-        (payload) => {
-          console.log('[Realtime] payload:', payload);
-          const newMsg = payload.new as Message | undefined;
-          if (!newMsg) return;
-
-          // Defensive: ensure the message is between these two users
-          const isRelated =
-            (newMsg.sender_id === user.id && newMsg.receiver_id === selectedUserId) ||
-            (newMsg.sender_id === selectedUserId && newMsg.receiver_id === user.id);
-          if (!isRelated) {
-            console.warn('[Realtime] Ignored unrelated message:', newMsg);
-            return;
-          }
-
-          // Avoid adding duplicates if the message's id already exists
-          setMessages((prev) => {
-            if (prev.some((m) => m.id === newMsg.id)) return prev;
-            return [...prev, newMsg];
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, selectedUserId, fetchMessages]);
-
-  // -------------------------------------------------
-
-  if (loading) {
-    return (
-      <div className="flex-grow flex items-center justify-center text-gray-400">
-        Loading messages...
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b border-gray-700">
-        <h3 className="font-bold">Chat with {selectedUserId}</h3>
+      {/* Header */}
+      <div className="p-4 border-b border-gray-700 flex items-center space-x-3">
+        <img
+          src={chatUser?.profile_image || '/images/default-avatar.png'}
+          alt={chatUser?.full_name}
+          className="w-10 h-10 rounded-full object-cover"
+          onError={(e) => (e.currentTarget.src = 'https://placehold.co/40x40/333/FFF?text=E')}
+        />
+        <h3 className="font-bold">{chatUser?.full_name || 'Unknown User'}</h3>
       </div>
 
       {/* Messages */}
@@ -217,7 +168,6 @@ export default function ChatBox({ selectedUserId }: ChatBoxProps) {
             </div>
           </div>
         ))}
-
         <div ref={messagesEndRef} />
       </div>
 
@@ -230,12 +180,10 @@ export default function ChatBox({ selectedUserId }: ChatBoxProps) {
             onChange={(e) => setNewMessage(e.target.value)}
             className="flex-1 bg-gray-700 border border-gray-600 rounded-lg p-3 text-white focus:ring-blue-500 focus:border-blue-500"
             placeholder="Type a message..."
-            aria-label="Type a message"
           />
           <button
             type="submit"
             className="p-3 bg-blue-600 rounded-lg hover:bg-blue-500 transition-colors"
-            aria-label="Send message"
           >
             <Send className="w-5 h-5" />
           </button>
