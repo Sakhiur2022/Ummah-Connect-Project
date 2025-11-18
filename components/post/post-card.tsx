@@ -305,7 +305,7 @@ export function PostCard({
         totalShares: prev.totalShares + 1,
       }));
 
-      alert("Post shared successfully!");
+    
       setShowShareMenu(false);
     } catch (error) {
       console.error("Error sharing post:", error);

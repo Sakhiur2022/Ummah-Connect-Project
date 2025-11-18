@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import ThemeToggleButton from "@/components/header/theme-toggle-button";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 interface UserProfile {
   id: string;
@@ -359,21 +360,27 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
-            {navigation.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => router.push(item.href)}
-                className="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-accent/50 transition-colors group"
-                title={item.label}
-              >
-                <item.icon className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                {item.badge && item.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                    {item.badge > 99 ? "99+" : item.badge}
-                  </span>
-                )}
-              </button>
-            ))}
+            {navigation.map((item) => 
+              item.label === "Notifications" ? (
+                <div key={item.label}>
+                  <NotificationCenter />
+                </div>
+              ) : (
+                <button
+                  key={item.label}
+                  onClick={() => router.push(item.href)}
+                  className="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-accent/50 transition-colors group"
+                  title={item.label}
+                >
+                  <item.icon className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  {item.badge && item.badge > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                      {item.badge > 99 ? "99+" : item.badge}
+                    </span>
+                  )}
+                </button>
+              )
+            )}
 
             {/* Profile Dropdown */}
             <div className="relative ml-3" ref={profileRef}>
@@ -541,24 +548,31 @@ export default function Header() {
 
             {/* Navigation Items */}
             <div className="space-y-2 px-4">
-              {navigation.map((item) => (
-                <button
-                  key={item.label}
-                  onClick={() => {
-                    router.push(item.href);
-                    setShowMobileMenu(false);
-                  }}
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-accent/50 transition-colors"
-                >
-                  <item.icon className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-sm font-medium">{item.label}</span>
-                  {item.badge && item.badge > 0 && (
-                    <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                      {item.badge > 99 ? "99+" : item.badge}
-                    </span>
-                  )}
-                </button>
-              ))}
+              {navigation.map((item) => 
+                item.label === "Notifications" ? (
+                  <div key={item.label} className="flex items-center justify-between px-3 py-2">
+                    <span className="text-sm font-medium">Notifications</span>
+                    <NotificationCenter />
+                  </div>
+                ) : (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      router.push(item.href);
+                      setShowMobileMenu(false);
+                    }}
+                    className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-accent/50 transition-colors"
+                  >
+                    <item.icon className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-sm font-medium">{item.label}</span>
+                    {item.badge && item.badge > 0 && (
+                      <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                        {item.badge > 99 ? "99+" : item.badge}
+                      </span>
+                    )}
+                  </button>
+                )
+              )}
             </div>
 
             {/* Mobile Menu Footer */}
