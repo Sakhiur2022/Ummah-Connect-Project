@@ -64,7 +64,7 @@ export function PostCard({
   // Theme-aware classes
   const bgClass = theme === "light" 
     ? "bg-white border-gray-200" 
-    : "bg-slate-900/40 border-slate-700/60";
+    : "bg-slate-800/80 border-slate-700/60";
   
   const textClass = theme === "light" 
     ? "text-gray-900" 
