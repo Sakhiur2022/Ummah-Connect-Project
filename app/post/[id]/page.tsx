@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { PostCard } from "@/components/post/post-card";
 import { CommentSection } from "@/components/post/comment-section";
 import Header from "@/components/ui/header";
-import { BackButton } from "@/components/ui/back-button";
 import { ProfileAnimatedBackground } from "@/components/background/profile-animated-background";
 
 interface PostPageProps {
@@ -76,7 +75,7 @@ export default async function PostPage({ params }: PostPageProps) {
       <ProfileAnimatedBackground />
 
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <BackButton />
+      
         
         {/* Post Detail */}
         <div className="space-y-8 mt-6">

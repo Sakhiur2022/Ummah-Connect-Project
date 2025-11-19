@@ -80,7 +80,7 @@ export function PostCard({
   
   const hoverClass = theme === "light" 
     ? "hover:bg-gray-200 hover:border-amber-400" 
-    : "hover:bg-slate-800/40 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10";
+    : "hover:bg-slate-700/80 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10";
   
   const accentClass = theme === "light" 
     ? "text-amber-600" 
