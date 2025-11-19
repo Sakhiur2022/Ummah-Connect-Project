@@ -14,9 +14,11 @@ import {
   LogOut,
   Menu,
   X,
+  ArrowLeft,
 } from "lucide-react";
 import ThemeToggleButton from "@/components/header/theme-toggle-button";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import { useThemeSafe } from "@/lib/use-theme-safe";
 
 interface UserProfile {
   id: string;
@@ -46,6 +48,7 @@ export default function Header() {
   const [messages, setMessages] = useState(0);
 
   const router = useRouter();
+  const { theme } = useThemeSafe();
   const supabase = createClient();
   const searchRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -177,7 +180,18 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => router.back()}
+              className={`p-2 rounded-lg transition-colors ${
+                theme === "light"
+                  ? "text-white hover:bg-gray-200/50 hover:text-white"
+                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+              }`}
+              title="Go back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
             <button
               onClick={() => router.push("/dashboard")}
               className="flex items-center space-x-2 hover:opacity-80 transition-opacity"

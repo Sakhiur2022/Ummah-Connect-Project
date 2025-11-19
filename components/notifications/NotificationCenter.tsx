@@ -47,7 +47,7 @@ export function NotificationCenter() {
           const newNotif = payload.new as Notification;
           
           // Fetch actor data for the new notification
-          if (newNotif.actor_id) {
+            if (newNotif.actor_id) {
             const { data: actorData } = await supabase
               .from("users")
               .select("id, full_name, username, profile_image")
@@ -57,7 +57,13 @@ export function NotificationCenter() {
             if (actorData) {
               newNotif.actor = actorData;
             }
-          }
+            }
+            
+            // Only add if notification is unread
+            if (!newNotif.is_read) {
+            setNotifications((prev) => [newNotif, ...prev]);
+            setUnreadCount((prev) => prev + 1);
+            }
           
           setNotifications((prev) => [newNotif, ...prev]);
           setUnreadCount((prev) => prev + 1);
