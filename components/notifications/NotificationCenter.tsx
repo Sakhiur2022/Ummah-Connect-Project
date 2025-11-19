@@ -47,7 +47,7 @@ export function NotificationCenter() {
           const newNotif = payload.new as Notification;
           
           // Fetch actor data for the new notification
-            if (newNotif.actor_id) {
+          if (newNotif.actor_id) {
             const { data: actorData } = await supabase
               .from("users")
               .select("id, full_name, username, profile_image")
@@ -57,16 +57,13 @@ export function NotificationCenter() {
             if (actorData) {
               newNotif.actor = actorData;
             }
-            }
-            
-            // Only add if notification is unread
-            if (!newNotif.is_read) {
+          }
+          
+          // Add notification once (only if unread)
+          if (!newNotif.is_read) {
             setNotifications((prev) => [newNotif, ...prev]);
             setUnreadCount((prev) => prev + 1);
-            }
-          
-          setNotifications((prev) => [newNotif, ...prev]);
-          setUnreadCount((prev) => prev + 1);
+          }
         }
       )
       .subscribe();
@@ -157,14 +154,28 @@ export function NotificationCenter() {
 
       if (!user) return;
 
-      // Update friend request status
-      const { error } = await supabase
-        .from("FRIEND_REQUEST")
-        .update({ status: "accepted" })
-        .eq("sender_id", actorId)
-        .eq("receiver_id", user.id);
+      console.log('Attempting to accept friend request from', actorId, 'to', user.id);
+      
+      // Try RPC first
+      const { data, error } = await supabase.rpc('accept_friend_request', {
+        p_sender_id: actorId,
+        p_receiver_id: user.id
+      });
 
-      if (error) throw error;
+      console.log('RPC response:', { data, error });
+      if (error) {
+        console.log('RPC not available, attempting direct update:', error.message);
+        const { error: updateError } = await supabase
+          .from("FRIEND_REQUEST")
+          .update({ status: "accepted" })
+          .match({ sender_id: actorId, receiver_id: user.id });
+
+        if (updateError) {
+          console.error("Error accepting friend request:", updateError.message, updateError.code, updateError.details);
+          alert(`Failed to accept friend request: ${updateError.message}`);
+          return;
+        }
+      }
 
       // Mark notification as read
       await markAsRead(notificationId);

@@ -2,13 +2,280 @@
 
 import { useThemeSafe } from "@/lib/use-theme-safe";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { UserPlus, UserCheck, Clock, X } from "lucide-react";
 
 interface ProfileHeaderProps {
   user: any;
 }
 
+type FriendRequestStatus = 'not_friends' | 'pending_sent' | 'pending_received' | 'friends'
+
 export function ProfileHeader({ user }: ProfileHeaderProps) {
   const { theme } = useThemeSafe();
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
+  const [friendRequestStatus, setFriendRequestStatus] = useState<FriendRequestStatus>('not_friends');
+  const [actionLoading, setActionLoading] = useState(false);
+  const supabase = createClient();
+
+  const isOwnProfile = user.id === currentUserId;
+
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      setCurrentUserId(authUser?.id);
+    };
+    getCurrentUser();
+  }, []);
+
+  useEffect(() => {
+    if (!currentUserId || isOwnProfile) return;
+
+    const fetchFriendRequestStatus = async () => {
+      try {
+        // Try to find request where current user is sender
+        const { data: sentData } = await supabase
+          .from('FRIEND_REQUEST')
+          .select('status')
+          .eq('sender_id', currentUserId)
+          .eq('receiver_id', user.id)
+          .single();
+
+        if (sentData) {
+          if (sentData.status === 'accepted') {
+            setFriendRequestStatus('friends');
+          } else {
+            setFriendRequestStatus('pending_sent');
+          }
+          return;
+        }
+
+        // Try to find request where current user is receiver
+        const { data: receivedData } = await supabase
+          .from('FRIEND_REQUEST')
+          .select('status')
+          .eq('sender_id', user.id)
+          .eq('receiver_id', currentUserId)
+          .single();
+
+        if (receivedData) {
+          if (receivedData.status === 'accepted') {
+            setFriendRequestStatus('friends');
+          } else {
+            setFriendRequestStatus('pending_received');
+          }
+        } else {
+          setFriendRequestStatus('not_friends');
+        }
+      } catch (err) {
+        console.error('Error in fetchFriendRequestStatus:', err);
+        setFriendRequestStatus('not_friends');
+      }
+    };
+
+    fetchFriendRequestStatus();
+  }, [currentUserId, user.id, isOwnProfile]);
+
+  const sendFriendRequest = async () => {
+    if (!currentUserId) return;
+    setActionLoading(true);
+    try {
+      const { error } = await supabase.from('FRIEND_REQUEST').insert({
+        sender_id: currentUserId,
+        receiver_id: user.id,
+        status: 'pending'
+      });
+
+      if (error) {
+        console.error('Error sending friend request:', error.message, error.code, error);
+        alert(`Failed to send friend request: ${error.message}`);
+      } else {
+        setFriendRequestStatus('pending_sent');
+        alert('Friend request sent!');
+      }
+    } catch (err) {
+      console.error('Error in sendFriendRequest:', err);
+      alert('Failed to send friend request');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const cancelFriendRequest = async () => {
+    if (!currentUserId) return;
+    setActionLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('cancel_friend_request', {
+        p_sender_id: currentUserId,
+        p_receiver_id: user.id
+      });
+
+      if (error) {
+        console.log('RPC not available, attempting direct delete:', error.message);
+        const { error: deleteError } = await supabase
+          .from('FRIEND_REQUEST')
+          .delete()
+          .match({ sender_id: currentUserId, receiver_id: user.id });
+
+        if (deleteError) {
+          console.error('Error canceling friend request:', deleteError.message, deleteError.code, deleteError);
+          alert(`Failed to cancel friend request: ${deleteError.message}`);
+        } else {
+          setFriendRequestStatus('not_friends');
+          alert('Friend request canceled!');
+        }
+      } else {
+        setFriendRequestStatus('not_friends');
+        alert('Friend request canceled!');
+      }
+    } catch (err) {
+      console.error('Error in cancelFriendRequest:', err);
+      alert('Failed to cancel friend request');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+      
+  const acceptFriendRequest = async () => {
+    if (!currentUserId) return;
+    setActionLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('accept_friend_request', {
+        p_sender_id: user.id,
+        p_receiver_id: currentUserId
+      });
+
+      if (error) {
+        console.log('RPC not available, attempting direct update:', error.message);
+        const { error: updateError } = await supabase
+          .from('FRIEND_REQUEST')
+          .update({ status: 'accepted' })
+          .match({ sender_id: user.id, receiver_id: currentUserId });
+
+        if (updateError) {
+          console.error('Error accepting friend request:', updateError.message, updateError.code, updateError);
+          alert(`Failed to accept friend request: ${updateError.message}`);
+        } else {
+          setFriendRequestStatus('friends');
+          alert('Friend request accepted!');
+        }
+      } else {
+        setFriendRequestStatus('friends');
+        alert('Friend request accepted!');
+      }
+    } catch (err) {
+      console.error('Error in acceptFriendRequest:', err);
+      alert('Failed to accept friend request');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const rejectFriendRequest = async () => {
+    if (!currentUserId) return;
+    setActionLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('reject_friend_request', {
+        p_sender_id: user.id,
+        p_receiver_id: currentUserId
+      });
+
+      if (error) {
+        console.log('RPC not available, attempting direct delete:', error.message);
+        const { error: deleteError } = await supabase
+          .from('FRIEND_REQUEST')
+          .delete()
+          .match({ sender_id: user.id, receiver_id: currentUserId });
+
+        if (deleteError) {
+          console.error('Error rejecting friend request:', deleteError.message, deleteError.code, deleteError);
+          alert(`Failed to reject friend request: ${deleteError.message}`);
+        } else {
+          setFriendRequestStatus('not_friends');
+          alert('Friend request rejected!');
+        }
+      } else {
+        setFriendRequestStatus('not_friends');
+        alert('Friend request rejected!');
+      }
+    } catch (err) {
+      console.error('Error in rejectFriendRequest:', err);
+      alert('Failed to reject friend request');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const removeFriend = async () => {
+    if (!currentUserId) return;
+    setActionLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('remove_friend', {
+        p_user_a: currentUserId,
+        p_user_b: user.id
+      });
+
+      if (error) {
+        console.log('RPC not available, attempting direct update:', error.message);
+        // Try to find and update where current user is sender
+        const { data: friendReq1, error: checkError1 } = await supabase
+          .from('FRIEND_REQUEST')
+          .select('sender_id, receiver_id')
+          .match({ sender_id: currentUserId, receiver_id: user.id, status: 'accepted' })
+          .single();
+
+        if (!checkError1 && friendReq1) {
+          const { error: updateError } = await supabase
+            .from('FRIEND_REQUEST')
+            .update({ status: 'pending' })
+            .match({ sender_id: friendReq1.sender_id, receiver_id: friendReq1.receiver_id });
+
+          if (updateError) {
+            console.error('Error removing friend:', updateError.message, updateError.code, updateError);
+            alert(`Failed to remove friend: ${updateError.message}`);
+          } else {
+            setFriendRequestStatus('not_friends');
+            alert('Friend removed!');
+          }
+          return;
+        }
+
+        // Try to find and update where current user is receiver
+        const { data: friendReq2, error: checkError2 } = await supabase
+          .from('FRIEND_REQUEST')
+          .select('sender_id, receiver_id')
+          .match({ sender_id: user.id, receiver_id: currentUserId, status: 'accepted' })
+          .single();
+
+        if (!checkError2 && friendReq2) {
+          const { error: updateError } = await supabase
+            .from('FRIEND_REQUEST')
+            .update({ status: 'pending' })
+            .match({ sender_id: friendReq2.sender_id, receiver_id: friendReq2.receiver_id });
+
+          if (updateError) {
+            console.error('Error removing friend:', updateError.message, updateError.code, updateError);
+            alert(`Failed to remove friend: ${updateError.message}`);
+          } else {
+            setFriendRequestStatus('not_friends');
+            alert('Friend removed!');
+          }
+          return;
+        }
+
+        alert('Friend request not found');
+      } else {
+        setFriendRequestStatus('not_friends');
+        alert('Friend removed!');
+      }
+    } catch (err) {
+      console.error('Error in removeFriend:', err);
+      alert('Failed to remove friend');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   return (
     <motion.div
@@ -92,6 +359,88 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
               >
                 {user.bio}
               </p>
+            )}
+            
+            {/* Friend Action Buttons */}
+            {!isOwnProfile && currentUserId && (
+              <div className="flex gap-2 mt-4">
+                {friendRequestStatus === 'not_friends' && (
+                  <button
+                    onClick={sendFriendRequest}
+                    disabled={actionLoading}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition disabled:opacity-50 ${
+                      theme === 'light'
+                        ? 'bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg'
+                        : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg shadow-destructive/50'
+                    }`}
+                  >
+                    <UserPlus size={18} />
+                    {actionLoading ? 'Sending...' : 'Add Friend'}
+                  </button>
+                )}
+                {friendRequestStatus === 'pending_sent' && (
+                  <>
+                    <button
+                      onClick={cancelFriendRequest}
+                      disabled={actionLoading}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition disabled:opacity-50 ${
+                        theme === 'light'
+                          ? 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                          : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
+                      }`}
+                    >
+                      <Clock size={18} />
+                      {actionLoading ? 'Canceling...' : 'Pending'}
+                    </button>
+                    <button
+                      onClick={cancelFriendRequest}
+                      disabled={actionLoading}
+                      className="px-3 py-2 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive transition disabled:opacity-50"
+                      title="Cancel request"
+                    >
+                      <X size={18} />
+                    </button>
+                  </>
+                )}
+                {friendRequestStatus === 'pending_received' && (
+                  <>
+                    <button
+                      onClick={acceptFriendRequest}
+                      disabled={actionLoading}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition disabled:opacity-50 ${
+                        theme === 'light'
+                          ? 'bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg'
+                          : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg shadow-destructive/50'
+                      }`}
+                    >
+                      <UserCheck size={18} />
+                      {actionLoading ? 'Accepting...' : 'Accept'}
+                    </button>
+                    <button
+                      onClick={rejectFriendRequest}
+                      disabled={actionLoading}
+                      className="px-3 py-2 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive transition disabled:opacity-50"
+                      title="Reject request"
+                    >
+                      <X size={18} />
+                    </button>
+                  </>
+                )}
+                {friendRequestStatus === 'friends' && (
+                  <button
+                    onClick={removeFriend}
+                    disabled={actionLoading}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition disabled:opacity-50 ${
+                      theme === 'light'
+                        ? 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                        : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
+                    }`}
+                  >
+                    <UserCheck size={18} />
+                    {actionLoading ? 'Removing...' : 'Friends'}
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>

@@ -2,6 +2,9 @@
 
 import { useThemeSafe } from "@/lib/use-theme-safe";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import FriendsList from "./FriendsList";
 
 interface ProfileContentProps {
   userId: string;
@@ -10,6 +13,16 @@ interface ProfileContentProps {
 
 export function ProfileContent({ userId, username }: ProfileContentProps) {
   const { theme } = useThemeSafe();
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id);
+    };
+    getCurrentUser();
+  }, []);
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -84,12 +97,8 @@ export function ProfileContent({ userId, username }: ProfileContentProps) {
       </motion.div>
 
       {/* Friends */}
-      <motion.div
-        variants={itemVariants}
-        className={cardClass}
-      >
-        <h3 className={subHeadingClass}>Friends</h3>
-        <p className={labelClass}>Friends will appear here</p>
+      <motion.div variants={itemVariants}>
+        <FriendsList userId={userId} currentUserId={currentUserId} />
       </motion.div>
     </motion.div>
   );

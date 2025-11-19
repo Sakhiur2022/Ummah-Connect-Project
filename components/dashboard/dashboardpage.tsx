@@ -314,7 +314,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header with Islamic Pattern */}
-      <div className="relative bg-gradient-to-r from-sidebar via-sidebar-accent to-sidebar overflow-hidden">
+      <div className="relative bg-linear-to-r from-sidebar via-sidebar-accent to-sidebar overflow-hidden">
         <div
           className="absolute inset-0 opacity-10"
           style={{
@@ -342,7 +342,7 @@ export default function Dashboard() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent overflow-hidden">
+              <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-accent overflow-hidden">
                 {user.profile_photo ? (
                   <img
                     src={user.profile_photo}
@@ -404,7 +404,7 @@ export default function Dashboard() {
                 whileHover={{ scale: 1.02, borderColor: "var(--primary)" }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <Mail className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                <Mail className="w-5 h-5 text-primary mt-1 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <span className="text-sm text-muted-foreground block">
                     Email:
@@ -421,7 +421,7 @@ export default function Dashboard() {
                 whileHover={{ scale: 1.02, borderColor: "var(--primary)" }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <User className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                <User className="w-5 h-5 text-primary mt-1 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <span className="text-sm text-muted-foreground block">
                     Full Name:
@@ -439,7 +439,7 @@ export default function Dashboard() {
                   whileHover={{ scale: 1.02, borderColor: "var(--primary)" }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >
-                  <Cake className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                  <Cake className="w-5 h-5 text-primary mt-1 shrink-0" />
                   <div>
                     <span className="text-sm text-muted-foreground block">
                       Age:
@@ -457,7 +457,7 @@ export default function Dashboard() {
                 whileHover={{ scale: 1.02, borderColor: "var(--primary)" }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <Calendar className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                <Calendar className="w-5 h-5 text-primary mt-1 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <span className="text-sm text-muted-foreground block">
                     Current Date:
@@ -560,7 +560,7 @@ export default function Dashboard() {
                     >
                       {/* Post Header */}
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent overflow-hidden flex-shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-accent overflow-hidden shrink-0">
                           {post.users?.profile_photo ? (
                             <img
                               src={post.users.profile_photo}
@@ -584,7 +584,7 @@ export default function Dashboard() {
                       </div>
 
                       {/* Post Content */}
-                      <p className="text-foreground mb-4 whitespace-pre-wrap break-words">
+                      <p className="text-foreground mb-4 whitespace-pre-wrap wrap-break-word">
                         {post.content}
                       </p>
 
