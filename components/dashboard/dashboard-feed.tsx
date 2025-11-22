@@ -100,24 +100,18 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
           const randomAyah = Math.floor(Math.random() * 286) + 1; // Max ayahs in Quran is 286
 
           try {
-            console.log(`Attempt ${attempts}: Fetching Surah ${randomSurah}, Ayah ${randomAyah}`);
-            
             // Fetch Arabic with harkat - use correct API format
             const arabicUrl = `https://api.alquran.cloud/v1/ayah/${randomSurah}:${randomAyah}?edition=quran-simple`;
-            console.log("Fetching Arabic from:", arabicUrl);
             
             const arabicResponse = await fetch(arabicUrl);
             
             if (!arabicResponse.ok) {
-              console.warn(`Ayah ${randomSurah}:${randomAyah} not found (status ${arabicResponse.status})`);
               continue;
             }
             
             arabicData = await arabicResponse.json();
-            console.log("Arabic response:", arabicData);
 
             if (arabicData?.data) {
-              // Arabic text fetched successfully
               break;
             }
           } catch (error) {

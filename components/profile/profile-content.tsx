@@ -14,6 +14,8 @@ interface ProfileContentProps {
 export function ProfileContent({ userId, username }: ProfileContentProps) {
   const { theme } = useThemeSafe();
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
+  const [totalPosts, setTotalPosts] = useState(0);
+  const [totalFriends, setTotalFriends] = useState(0);
   const supabase = createClient();
 
   useEffect(() => {
@@ -23,6 +25,49 @@ export function ProfileContent({ userId, username }: ProfileContentProps) {
     };
     getCurrentUser();
   }, []);
+
+  // Fetch total posts
+  useEffect(() => {
+    const fetchTotalPosts = async () => {
+      try {
+        const { count } = await supabase
+          .from("POST")
+          .select("post_id", { count: "exact" })
+          .eq("creator_id", userId)
+          .eq("status", "active");
+        
+        setTotalPosts(count || 0);
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+      }
+    };
+
+    fetchTotalPosts();
+  }, [userId, supabase]);
+
+  // Fetch total friends
+  useEffect(() => {
+    const fetchTotalFriends = async () => {
+      try {
+        const { data: userAFriends } = await supabase
+          .from("FRIEND")
+          .select("user_b", { count: "exact" })
+          .eq("user_a", userId);
+
+        const { data: userBFriends } = await supabase
+          .from("FRIEND")
+          .select("user_a", { count: "exact" })
+          .eq("user_b", userId);
+
+        const totalFriendsCount = (userAFriends?.length || 0) + (userBFriends?.length || 0);
+        setTotalFriends(totalFriendsCount);
+      } catch (error) {
+        console.error("Error fetching friends:", error);
+      }
+    };
+
+    fetchTotalFriends();
+  }, [userId, supabase]);
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -82,16 +127,12 @@ export function ProfileContent({ userId, username }: ProfileContentProps) {
         <h3 className={subHeadingClass}>Stats</h3>
         <div className="space-y-3">
           <div className="flex justify-between">
-            <span className={labelClass}>Posts</span>
-            <span className={valueClass}>0</span>
+            <span className={labelClass}>Total Posts</span>
+            <span className={valueClass}>{totalPosts}</span>
           </div>
           <div className="flex justify-between">
-            <span className={labelClass}>Followers</span>
-            <span className={valueClass}>0</span>
-          </div>
-          <div className="flex justify-between">
-            <span className={labelClass}>Following</span>
-            <span className={valueClass}>0</span>
+            <span className={labelClass}>Total Friends</span>
+            <span className={valueClass}>{totalFriends}</span>
           </div>
         </div>
       </motion.div>
