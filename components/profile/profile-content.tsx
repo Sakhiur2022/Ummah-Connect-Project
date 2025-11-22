@@ -43,6 +43,27 @@ export function ProfileContent({ userId, username }: ProfileContentProps) {
     };
 
     fetchTotalPosts();
+
+    // Subscribe to real-time changes in POST table
+    const postSubscription = supabase
+      .channel("post-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "POST",
+          filter: `creator_id=eq.${userId}`,
+        },
+        () => {
+          fetchTotalPosts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(postSubscription);
+    };
   }, [userId, supabase]);
 
   // Fetch total friends
@@ -67,6 +88,27 @@ export function ProfileContent({ userId, username }: ProfileContentProps) {
     };
 
     fetchTotalFriends();
+
+    // Subscribe to real-time changes in FRIEND table
+    const friendSubscription = supabase
+      .channel("friend-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "FRIEND",
+          filter: `user_a=eq.${userId},user_b=eq.${userId}`,
+        },
+        () => {
+          fetchTotalFriends();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(friendSubscription);
+    };
   }, [userId, supabase]);
 
   const itemVariants = {
