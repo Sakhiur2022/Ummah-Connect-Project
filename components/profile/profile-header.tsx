@@ -17,6 +17,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   const [friendRequestStatus, setFriendRequestStatus] = useState<FriendRequestStatus>('not_friends');
   const [actionLoading, setActionLoading] = useState(false);
+  const [showUnfriendModal, setShowUnfriendModal] = useState(false);
   const supabase = createClient();
 
   const isOwnProfile = user.id === currentUserId;
@@ -75,6 +76,27 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
     };
 
     fetchFriendRequestStatus();
+
+    // Subscribe to real-time friend request status changes
+    const friendRequestSubscription = supabase
+      .channel('friend-request-status-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'FRIEND_REQUEST',
+          filter: `or(and(sender_id=eq.${currentUserId},receiver_id=eq.${user.id}),and(sender_id=eq.${user.id},receiver_id=eq.${currentUserId}))`
+        },
+        () => {
+          fetchFriendRequestStatus();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(friendRequestSubscription);
+    };
   }, [currentUserId, user.id, isOwnProfile]);
 
   const sendFriendRequest = async () => {
@@ -212,61 +234,16 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
     setActionLoading(true);
     try {
       const { data, error } = await supabase.rpc('remove_friend', {
-        p_user_a: currentUserId,
-        p_user_b: user.id
+        uid_a: currentUserId,
+        uid_b: user.id
       });
 
       if (error) {
-        console.log('RPC not available, attempting direct update:', error.message);
-        // Try to find and update where current user is sender
-        const { data: friendReq1, error: checkError1 } = await supabase
-          .from('FRIEND_REQUEST')
-          .select('sender_id, receiver_id')
-          .match({ sender_id: currentUserId, receiver_id: user.id, status: 'accepted' })
-          .single();
-
-        if (!checkError1 && friendReq1) {
-          const { error: updateError } = await supabase
-            .from('FRIEND_REQUEST')
-            .update({ status: 'pending' })
-            .match({ sender_id: friendReq1.sender_id, receiver_id: friendReq1.receiver_id });
-
-          if (updateError) {
-            console.error('Error removing friend:', updateError.message, updateError.code, updateError);
-            alert(`Failed to remove friend: ${updateError.message}`);
-          } else {
-            setFriendRequestStatus('not_friends');
-            alert('Friend removed!');
-          }
-          return;
-        }
-
-        // Try to find and update where current user is receiver
-        const { data: friendReq2, error: checkError2 } = await supabase
-          .from('FRIEND_REQUEST')
-          .select('sender_id, receiver_id')
-          .match({ sender_id: user.id, receiver_id: currentUserId, status: 'accepted' })
-          .single();
-
-        if (!checkError2 && friendReq2) {
-          const { error: updateError } = await supabase
-            .from('FRIEND_REQUEST')
-            .update({ status: 'pending' })
-            .match({ sender_id: friendReq2.sender_id, receiver_id: friendReq2.receiver_id });
-
-          if (updateError) {
-            console.error('Error removing friend:', updateError.message, updateError.code, updateError);
-            alert(`Failed to remove friend: ${updateError.message}`);
-          } else {
-            setFriendRequestStatus('not_friends');
-            alert('Friend removed!');
-          }
-          return;
-        }
-
-        alert('Friend request not found');
+        console.error('Error removing friend via RPC:', error.message);
+        alert(`Failed to remove friend: ${error.message}`);
       } else {
         setFriendRequestStatus('not_friends');
+        setShowUnfriendModal(false);
         alert('Friend removed!');
       }
     } catch (err) {
@@ -428,7 +405,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
                 )}
                 {friendRequestStatus === 'friends' && (
                   <button
-                    onClick={removeFriend}
+                    onClick={() => setShowUnfriendModal(true)}
                     disabled={actionLoading}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition disabled:opacity-50 ${
                       theme === 'light'
@@ -445,6 +422,52 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
           </div>
         </div>
       </div>
+
+      {/* Unfriend Confirmation Modal */}
+      {showUnfriendModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className={`rounded-xl p-6 max-w-sm w-full ${
+              theme === "light"
+                ? "bg-white border border-gray-200 shadow-lg"
+                : "bg-slate-800 border border-slate-700 shadow-lg shadow-black/50"
+            }`}
+          >
+            <h2 className={`text-xl font-bold mb-4 ${
+              theme === "light" ? "text-gray-900" : "text-slate-100"
+            }`}>
+              Unfriend {user.full_name}?
+            </h2>
+        
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowUnfriendModal(false)}
+                className={`flex-1 px-4 py-2 rounded-lg font-semibold transition ${
+                  theme === "light"
+                    ? "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                    : "bg-slate-700 hover:bg-slate-600 text-slate-100"
+                }`}
+              >
+                No
+              </button>
+              <button
+                onClick={removeFriend}
+                disabled={actionLoading}
+                className={`flex-1 px-4 py-2 rounded-lg font-semibold transition disabled:opacity-50 ${
+                  theme === "light"
+                    ? "bg-red-500 hover:bg-red-600 text-white"
+                    : "bg-red-600 hover:bg-red-700 text-white"
+                }`}
+              >
+                {actionLoading ? "Removing..." : "Yes, Unfriend"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </motion.div>
   );
 }

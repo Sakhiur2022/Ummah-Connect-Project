@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useThemeSafe } from '@/lib/use-theme-safe'
 import { motion } from 'framer-motion'
@@ -17,6 +18,7 @@ type Friend = {
 type FriendRequestStatus = 'not_friends' | 'pending_sent' | 'pending_received' | 'friends'
 
 export default function FriendsList({ userId, currentUserId }: { userId: string; currentUserId?: string }) {
+  const router = useRouter()
   const [friends, setFriends] = useState<Friend[]>([])
   const [mutualFriends, setMutualFriends] = useState<Friend[]>([])
   const [mutualCount, setMutualCount] = useState(0)
@@ -80,6 +82,31 @@ export default function FriendsList({ userId, currentUserId }: { userId: string;
     }
   }
 
+  // Subscribe to real-time friends list changes
+  useEffect(() => {
+    fetchFriends()
+
+    const friendsSubscription = supabase
+      .channel('friends-list-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'FRIEND_REQUEST',
+          filter: `or(and(sender_id=eq.${userId},status=eq.accepted),and(receiver_id=eq.${userId},status=eq.accepted))`
+        },
+        () => {
+          fetchFriends()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(friendsSubscription)
+    }
+  }, [userId])
+
   // Fetch friend request status (only if viewing another user's profile)
   const fetchFriendRequestStatus = async () => {
     if (!currentUserId || isOwnProfile) return
@@ -124,6 +151,33 @@ export default function FriendsList({ userId, currentUserId }: { userId: string;
       setFriendRequestStatus('not_friends')
     }
   }
+
+  // Subscribe to real-time friend request status changes
+  useEffect(() => {
+    if (!currentUserId || isOwnProfile) return
+
+    fetchFriendRequestStatus()
+
+    const friendRequestSubscription = supabase
+      .channel('friend-request-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'FRIEND_REQUEST',
+          filter: `or(and(sender_id=eq.${currentUserId},receiver_id=eq.${userId}),and(sender_id=eq.${userId},receiver_id=eq.${currentUserId}))`
+        },
+        () => {
+          fetchFriendRequestStatus()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(friendRequestSubscription)
+    }
+  }, [currentUserId, userId, isOwnProfile])
 
   // Fetch mutual friends
   const fetchMutualFriends = async () => {
@@ -189,6 +243,33 @@ export default function FriendsList({ userId, currentUserId }: { userId: string;
       console.error('Error in fetchMutualFriends:', err)
     }
   }
+
+  // Subscribe to real-time mutual friends changes
+  useEffect(() => {
+    if (!currentUserId || isOwnProfile) return
+
+    fetchMutualFriends()
+
+    const mutualFriendsSubscription = supabase
+      .channel('mutual-friends-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'FRIEND_REQUEST',
+          filter: `or(and(sender_id=eq.${currentUserId},status=eq.accepted),and(receiver_id=eq.${currentUserId},status=eq.accepted),and(sender_id=eq.${userId},status=eq.accepted),and(receiver_id=eq.${userId},status=eq.accepted))`
+        },
+        () => {
+          fetchMutualFriends()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(mutualFriendsSubscription)
+    }
+  }, [currentUserId, userId, isOwnProfile])
 
   // Send friend request
   const sendFriendRequest = async () => {
@@ -386,22 +467,12 @@ export default function FriendsList({ userId, currentUserId }: { userId: string;
   }
 
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true)
-      await fetchFriends()
-      if (currentUserId && !isOwnProfile) {
-        await fetchFriendRequestStatus()
-        await fetchMutualFriends()
-      }
-      setLoading(false)
-    }
-
-    loadData()
-  }, [userId, currentUserId])
+    setLoading(false)
+  }, [friends])
 
   const bgClass = theme === 'light'
-    ? 'bg-white border border-gray-200/60 shadow-lg shadow-gray-200/50'
-    : 'bg-slate-900/40 border border-slate-700/60 shadow-lg shadow-black/50'
+    ? 'rounded-xl backdrop-blur-md border border-gray-200/60 bg-white/40 shadow-lg shadow-gray-200/50'
+    : 'rounded-xl backdrop-blur-md border border-slate-700/60 bg-slate-900/40 shadow-lg shadow-black/50'
 
   const headingClass = theme === 'light'
     ? 'text-amber-900'
@@ -415,91 +486,9 @@ export default function FriendsList({ userId, currentUserId }: { userId: string;
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-2xl p-6 backdrop-blur-md ${bgClass}`}
+      className={`p-6 ${bgClass}`}
     >
       <div className="space-y-6">
-        {/* Friend Request Button (only for other users) */}
-        {!isOwnProfile && currentUserId && (
-          <div className="flex gap-2">
-            {friendRequestStatus === 'not_friends' && (
-              <button
-                onClick={sendFriendRequest}
-                disabled={actionLoading}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg font-semibold transition disabled:opacity-50 ${
-                  theme === 'light'
-                    ? 'bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg'
-                    : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg shadow-destructive/50'
-                }`}
-              >
-                <UserPlus size={18} />
-                {actionLoading ? 'Sending...' : 'Add Friend'}
-              </button>
-            )}
-            {friendRequestStatus === 'pending_sent' && (
-              <>
-                <button
-                  onClick={cancelFriendRequest}
-                  disabled={actionLoading}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg font-semibold transition disabled:opacity-50 ${
-                    theme === 'light'
-                      ? 'bg-muted hover:bg-muted/80 text-muted-foreground'
-                      : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
-                  }`}
-                >
-                  <Clock size={18} />
-                  {actionLoading ? 'Canceling...' : 'Pending'}
-                </button>
-                <button
-                  onClick={cancelFriendRequest}
-                  disabled={actionLoading}
-                  className="px-3 py-2 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive transition disabled:opacity-50"
-                  title="Cancel request"
-                >
-                  <X size={18} />
-                </button>
-              </>
-            )}
-            {friendRequestStatus === 'pending_received' && (
-              <>
-                <button
-                  onClick={acceptFriendRequest}
-                  disabled={actionLoading}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg font-semibold transition disabled:opacity-50 ${
-                    theme === 'light'
-                      ? 'bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg'
-                      : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg shadow-destructive/50'
-                  }`}
-                >
-                  <UserCheck size={18} />
-                  {actionLoading ? 'Accepting...' : 'Accept'}
-                </button>
-                <button
-                  onClick={rejectFriendRequest}
-                  disabled={actionLoading}
-                  className="px-3 py-2 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive transition disabled:opacity-50"
-                  title="Reject request"
-                >
-                  <X size={18} />
-                </button>
-              </>
-            )}
-            {friendRequestStatus === 'friends' && (
-              <button
-                onClick={removeFriend}
-                disabled={actionLoading}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg font-semibold transition disabled:opacity-50 ${
-                  theme === 'light'
-                    ? 'bg-muted hover:bg-muted/80 text-muted-foreground'
-                    : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
-                }`}
-              >
-                <UserCheck size={18} />
-                {actionLoading ? 'Removing...' : 'Friends'}
-              </button>
-            )}
-          </div>
-        )}
-
         {/* Mutual Friends Count */}
         {!isOwnProfile && mutualCount > 0 && (
           <div className={`text-sm font-semibold ${textClass}`}>
@@ -516,16 +505,27 @@ export default function FriendsList({ userId, currentUserId }: { userId: string;
                 <motion.div
                   key={f.id}
                   whileHover={{ scale: 1.05 }}
-                  className="flex items-center gap-2 px-3 py-2 rounded-full bg-opacity-20 backdrop-blur-sm"
+                  onClick={() => router.push(`/profile/${f.username}`)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-full bg-opacity-20 backdrop-blur-sm cursor-pointer"
                   style={{
                     backgroundColor: theme === 'light' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(34, 197, 94, 0.1)'
                   }}
                 >
-                  <img
-                    src={f.profile_image || '/default-avatar.png'}
-                    alt={f.full_name}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
+                  {f.profile_image ? (
+                    <img
+                      src={f.profile_image}
+                      alt={f.full_name}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
+                      theme === 'light'
+                        ? 'bg-linear-to-br from-amber-100 to-yellow-100 text-amber-900'
+                        : 'bg-linear-to-br from-cyan-900 to-purple-900 text-cyan-300'
+                    }`}>
+                      {f.full_name?.charAt(0) || 'U'}
+                    </div>
+                  )}
                   <span className={`text-sm font-medium ${headingClass}`}>{f.full_name}</span>
                 </motion.div>
               ))}
@@ -550,17 +550,28 @@ export default function FriendsList({ userId, currentUserId }: { userId: string;
                   <motion.div
                     key={f.id}
                     whileHover={{ scale: 1.03 }}
+                    onClick={() => router.push(`/profile/${f.username}`)}
                     className="flex flex-col items-center text-center p-3 rounded-lg bg-opacity-20 backdrop-blur-sm cursor-pointer transition"
                     style={{
                       backgroundColor: theme === 'light' ? 'rgba(59, 130, 246, 0.05)' : 'rgba(34, 197, 94, 0.05)',
                       border: `1px solid ${theme === 'light' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(34, 197, 94, 0.1)'}`
                     }}
                   >
-                    <img
-                      src={f.profile_image || '/default-avatar.png'}
-                      alt={f.full_name}
-                      className="w-12 h-12 rounded-full object-cover mb-2"
-                    />
+                    {f.profile_image ? (
+                      <img
+                        src={f.profile_image}
+                        alt={f.full_name}
+                        className="w-12 h-12 rounded-full object-cover mb-2"
+                      />
+                    ) : (
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg mb-2 ${
+                        theme === 'light'
+                          ? 'bg-linear-to-br from-amber-100 to-yellow-100 text-amber-900'
+                          : 'bg-linear-to-br from-cyan-900 to-purple-900 text-cyan-300'
+                      }`}>
+                        {f.full_name?.charAt(0) || 'U'}
+                      </div>
+                    )}
                     <p className={`font-medium text-sm ${headingClass}`}>{f.full_name}</p>
                     <p className={`text-xs ${textClass}`}>@{f.username}</p>
                   </motion.div>

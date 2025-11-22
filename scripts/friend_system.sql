@@ -217,3 +217,35 @@ CREATE TRIGGER friend_request_after_delete
   AFTER DELETE ON public."FRIEND_REQUEST"
   FOR EACH ROW
   EXECUTE FUNCTION public.friend_request_delete_handler();
+
+
+  CREATE OR REPLACE FUNCTION public.remove_friend(p_user_a uuid, p_user_b uuid)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $function$
+DECLARE
+  v_friends_deleted int := 0;
+  v_requests_deleted int := 0;
+BEGIN
+  -- Delete mutual friendships (both directions)
+  DELETE FROM public."FRIEND"
+  WHERE (user_a = p_user_a AND user_b = p_user_b)
+     OR (user_a = p_user_b AND user_b = p_user_a)
+  RETURNING 1 INTO v_friends_deleted;
+
+  -- The above only captures one row into v_friends_deleted; adjust to count
+  GET DIAGNOSTICS v_friends_deleted = ROW_COUNT;
+
+  -- Delete friend requests in both directions
+  DELETE FROM public."FRIEND_REQUEST"
+  WHERE (requester_id = p_user_a AND receiver_id = p_user_b)
+     OR (requester_id = p_user_b AND receiver_id = p_user_a);
+  GET DIAGNOSTICS v_requests_deleted = ROW_COUNT;
+
+  RETURN jsonb_build_object(
+    'friends_deleted', v_friends_deleted,
+    'friend_requests_deleted', v_requests_deleted
+  );
+END;
+$function$;

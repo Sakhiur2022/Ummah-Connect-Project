@@ -330,13 +330,15 @@ export function NotificationCenter() {
               </div>
 
               {/* Notification List */}
-              {notifications.length === 0 ? (
+              {notifications.filter((notif) => !notif.is_read).length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground">
                   No notifications yet
                 </div>
               ) : (
                 <div className="divide-y divide-border">
-                  {notifications.map((notif) => (
+                  {notifications
+                    .filter((notif) => !notif.is_read)
+                    .map((notif) => (
                     <motion.div
                       key={notif.notification_id}
                       initial={{ opacity: 0, x: -10 }}
