@@ -5,6 +5,7 @@ import { ProfileHeader } from "@/components/profile/profile-header";
 import { ProfileContent } from "@/components/profile/profile-content";
 import { ProfileFeed } from "@/components/profile/profile-feed";
 import Header from "@/components/ui/header";
+import MahramAccessModal from "@/components/profile/mahram-access-modal";
 
 interface ProfilePageProps {
   params: {
@@ -33,30 +34,57 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   const isOwnProfile = currentUser?.id === user.id;
 
+  // Check mahram access if not own profile and different gender
+  let hasAccess = true;
+  let accessReason = "";
+  
+  if (!isOwnProfile && currentUser) {
+    const { data: accessResult } = await supabase.rpc("can_view_profile", {
+      p_viewer_id: currentUser.id,
+      p_profile_owner_id: user.id,
+    });
+
+    if (accessResult && Array.isArray(accessResult) && accessResult.length > 0) {
+      hasAccess = accessResult[0].can_view;
+      accessReason = accessResult[0].reason;
+    }
+  }
+
   return (
     <div className="min-h-screen relative">
       <ProfileAnimatedBackground />
       <Header />
       {/* Content with glassmorphism */}
       <div className="relative z-10">
-        <ProfileHeader user={user} />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Feed */}
-          <div className="lg:col-span-2">
-            <ProfileFeed 
-              userId={user.id} 
-              userName={user.full_name}
-              userImage={user.profile_image}
-              isOwnProfile={isOwnProfile}
-              currentUserId={currentUser?.id}
-            />
-          </div>
-          
-          {/* Sidebar Profile Content */}
-          <div className="lg:col-span-1">
-            <ProfileContent userId={user.id} username={params.username} />
-          </div>
-        </div>
+        {!hasAccess ? (
+          <MahramAccessModal 
+            profileOwnerId={user.id}
+            currentUserId={currentUser?.id}
+            profileOwnerName={user.full_name}
+            reason={accessReason}
+          />
+        ) : (
+          <>
+            <ProfileHeader user={user} />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Main Feed */}
+              <div className="lg:col-span-2">
+                <ProfileFeed 
+                  userId={user.id} 
+                  userName={user.full_name}
+                  userImage={user.profile_image}
+                  isOwnProfile={isOwnProfile}
+                  currentUserId={currentUser?.id}
+                />
+              </div>
+              
+              {/* Sidebar Profile Content */}
+              <div className="lg:col-span-1">
+                <ProfileContent userId={user.id} username={params.username} />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

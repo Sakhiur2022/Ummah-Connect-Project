@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Bell, X, CheckCircle, XCircle } from "lucide-react";
+import { Bell, X, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import MahramNotification from "@/components/profile/mahram-notification";
+import { useThemeSafe } from "@/lib/use-theme-safe";
 
 interface Notification {
   notification_id: string;
@@ -27,8 +29,10 @@ export function NotificationCenter() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobileFullScreen, setIsMobileFullScreen] = useState(false);
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
+  const { theme } = useThemeSafe();
 
   useEffect(() => {
     fetchNotifications();
@@ -263,6 +267,18 @@ export function NotificationCenter() {
             {actorLink} sent you a friend request
           </>
         );
+      case "mahram_request":
+        return (
+          <>
+            {actorLink} sent you a mahram request
+          </>
+        );
+      case "mahram_approved":
+        return (
+          <>
+            {actorLink} approved your mahram request
+          </>
+        );
       case "comment":
         return (
           <>
@@ -294,10 +310,197 @@ export function NotificationCenter() {
 
   return (
     <>
-      {/* Mobile and Desktop Notification Bell */}
-      <div className="relative">
+      {/* Mobile Full-Screen Notifications View */}
+      <AnimatePresence>
+        {isMobileFullScreen && (
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            className="fixed inset-0 md:hidden z-50 bg-background flex flex-col"
+          >
+            {/* Mobile Header */}
+            <div className={`flex items-center justify-between p-4 border-b ${theme === 'light' ? 'border-[oklch(0.9_0.03_60)] bg-[oklch(0.96_0.02_60)]' : 'border-[oklch(0.25_0.04_240)] bg-[oklch(0.12_0.03_240)]'}`}>
+              <button
+                onClick={() => setIsMobileFullScreen(false)}
+                className={`p-2 rounded-lg transition-colors ${theme === 'light' ? 'text-black hover:bg-[oklch(0.85_0.05_60)]' : 'hover:bg-[oklch(0.18_0.04_240)]'}`}
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </button>
+              <h2 className={`text-lg font-semibold ${theme === 'light' ? 'text-[oklch(0.15_0.02_240)]' : 'text-[oklch(0.95_0.01_60)]'}`}>
+                Notifications
+              </h2>
+              <div className="w-10" />
+            </div>
+
+            {/* Mobile Notifications List */}
+            <div className="flex-1 overflow-y-auto">
+              {notifications.filter((notif) => !notif.is_read).length === 0 ? (
+                <div className={`flex items-center justify-center h-full ${theme === 'light' ? 'text-[oklch(0.45_0.05_60)]' : 'text-[oklch(0.65_0.02_60)]'}`}>
+                  <p>No notifications yet</p>
+                </div>
+              ) : (
+                <div className={`divide-y ${theme === 'light' ? 'divide-[oklch(0.9_0.03_60)]' : 'divide-[oklch(0.25_0.04_240)]'}`}>
+                  {notifications
+                    .filter((notif) => !notif.is_read)
+                    .map((notif) => (
+                    <motion.div
+                      key={notif.notification_id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className={`p-4 ${notif.is_read ? '' : theme === 'light' ? 'bg-[oklch(0.85_0.05_60)]/20' : 'bg-[oklch(0.18_0.04_240)]/20'}`}
+                    >
+                      {/* Friend Request Notification */}
+                      {notif.verb === "friend_request" && (
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            {notif.actor?.profile_image ? (
+                              <img
+                                src={notif.actor.profile_image}
+                                alt={notif.actor?.full_name || "User"}
+                                className="w-12 h-12 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${theme === 'light' ? 'bg-[oklch(0.7_0.14_30)]' : 'bg-[oklch(0.75_0.15_45)]'}`}>
+                                {(notif.actor?.full_name || "U").charAt(0)}
+                              </div>
+                            )}
+
+                            <div className="flex-1 min-w-0">
+                              <Link
+                                href={`/profile/${notif.actor?.username || "user"}`}
+                                className={`text-sm font-semibold hover:underline truncate block ${theme === 'light' ? 'text-[oklch(0.15_0.02_240)]' : 'text-[oklch(0.95_0.01_60)]'}`}
+                              >
+                                {notif.actor?.full_name || "User"}
+                              </Link>
+                              <p className={`text-xs ${theme === 'light' ? 'text-[oklch(0.45_0.05_60)]' : 'text-[oklch(0.65_0.02_60)]'}`}>
+                                Sent a friend request
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Accept/Reject Buttons */}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() =>
+                                handleAcceptFriend(
+                                  notif.notification_id,
+                                  notif.actor_id || ""
+                                )
+                              }
+                              disabled={loading}
+                              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                              Accept
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleRejectFriend(
+                                  notif.notification_id,
+                                  notif.actor_id || ""
+                                )
+                              }
+                              disabled={loading}
+                              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
+                            >
+                              <XCircle className="w-4 h-4" />
+                              Reject
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Mahram Request Notification */}
+                      {notif.verb === "mahram_request" && notif.object_id && (
+                        <MahramNotification
+                          notificationId={notif.notification_id}
+                          mahramId={notif.object_id}
+                          requesterName={notif.actor?.full_name || "User"}
+                          requesterUsername={notif.actor?.username || "user"}
+                          requesterImage={notif.actor?.profile_image}
+                          onUpdate={fetchNotifications}
+                        />
+                      )}
+
+                      {/* Mahram Approved Notification */}
+                      {notif.verb === "mahram_approved" && (
+                        <button
+                          onClick={() => markAsRead(notif.notification_id)}
+                          className="w-full text-left"
+                        >
+                          <div className="flex items-start gap-3">
+                            {notif.actor?.profile_image ? (
+                              <img
+                                src={notif.actor.profile_image}
+                                alt={notif.actor?.full_name || "User"}
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${theme === 'light' ? 'bg-[oklch(0.7_0.14_30)]' : 'bg-[oklch(0.75_0.15_45)]'}`}>
+                                {(notif.actor?.full_name || "U").charAt(0)}
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm ${theme === 'light' ? 'text-[oklch(0.15_0.02_240)]' : 'text-[oklch(0.95_0.01_60)]'}`}>
+                                {getNotificationMessage(notif)}
+                              </p>
+                              <p className={`text-xs mt-1 ${theme === 'light' ? 'text-[oklch(0.45_0.05_60)]' : 'text-[oklch(0.65_0.02_60)]'}`}>
+                                {new Date(notif.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+                      )}
+
+                      {/* Other Notifications */}
+                      {notif.verb !== "friend_request" && notif.verb !== "mahram_request" && notif.verb !== "mahram_approved" && (
+                        <button
+                          onClick={() => markAsRead(notif.notification_id)}
+                          className="w-full text-left"
+                        >
+                          <div className="flex items-start gap-3">
+                            {notif.actor?.profile_image ? (
+                              <img
+                                src={notif.actor.profile_image}
+                                alt={notif.actor?.full_name || "User"}
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${theme === 'light' ? 'bg-[oklch(0.7_0.14_30)]' : 'bg-[oklch(0.75_0.15_45)]'}`}>
+                                {(notif.actor?.full_name || "U").charAt(0)}
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm ${theme === 'light' ? 'text-[oklch(0.15_0.02_240)]' : 'text-[oklch(0.95_0.01_60)]'}`}>
+                                {getNotificationMessage(notif)}
+                              </p>
+                              <p className={`text-xs mt-1 ${theme === 'light' ? 'text-[oklch(0.45_0.05_60)]' : 'text-[oklch(0.65_0.02_60)]'}`}>
+                                {new Date(notif.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop and Mobile Notification Bell */}
+      <div className="relative flex items-center">
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            if (window.innerWidth < 768) {
+              setIsMobileFullScreen(true);
+            } else {
+              setIsOpen(!isOpen);
+            }
+          }}
           className="relative p-2 rounded-lg hover:bg-accent transition-colors"
           title="Notifications"
         >
@@ -309,14 +512,14 @@ export function NotificationCenter() {
           )}
         </button>
 
-        {/* Notification Dropdown */}
+        {/* Notification Dropdown - Desktop Only */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: -10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -10 }}
-              className="absolute right-0 top-12 w-96 max-h-96 bg-card border border-border rounded-xl shadow-lg overflow-y-auto z-50"
+              className="hidden md:block absolute right-0 top-12 w-96 max-h-96 bg-card border border-border rounded-xl shadow-lg overflow-y-auto z-50"
             >
               {/* Header */}
               <div className="sticky top-0 bg-card border-b border-border px-4 py-3 flex justify-between items-center">
@@ -408,8 +611,50 @@ export function NotificationCenter() {
                         </div>
                       )}
 
+                      {/* Mahram Request Notification */}
+                      {notif.verb === "mahram_request" && notif.object_id && (
+                        <MahramNotification
+                          notificationId={notif.notification_id}
+                          mahramId={notif.object_id}
+                          requesterName={notif.actor?.full_name || "User"}
+                          requesterUsername={notif.actor?.username || "user"}
+                          requesterImage={notif.actor?.profile_image}
+                          onUpdate={fetchNotifications}
+                        />
+                      )}
+
+                      {/* Mahram Approved Notification */}
+                      {notif.verb === "mahram_approved" && (
+                        <button
+                          onClick={() => markAsRead(notif.notification_id)}
+                          className="w-full text-left"
+                        >
+                          <div className="flex items-start gap-3">
+                            {notif.actor?.profile_image ? (
+                              <img
+                                src={notif.actor.profile_image}
+                                alt={notif.actor?.full_name || "User"}
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold">
+                                {(notif.actor?.full_name || "U").charAt(0)}
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-foreground">
+                                {getNotificationMessage(notif)}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {new Date(notif.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+                      )}
+
                       {/* Other Notifications */}
-                      {notif.verb !== "friend_request" && (
+                      {notif.verb !== "friend_request" && notif.verb !== "mahram_request" && notif.verb !== "mahram_approved" && (
                         <button
                           onClick={() => markAsRead(notif.notification_id)}
                           className="w-full text-left"

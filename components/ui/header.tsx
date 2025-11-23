@@ -108,21 +108,42 @@ export default function Header() {
     }
 
     try {
+      // Get current user's gender
+      const { data: currentUserData } = await supabase
+        .from("users")
+        .select("gender")
+        .eq("id", user?.id)
+        .single();
+
+      const currentUserGender = currentUserData?.gender;
+
+      // Search for users and filter by same gender
       const { data: users } = await supabase
         .from("users")
-        .select("id, username, full_name, profile_image")
+        .select("id, username, full_name, profile_image, gender")
         .or(`username.ilike.%${query}%,full_name.ilike.%${query}%`)
-        .limit(5);
+        .limit(10);
 
+      // Filter: exclude opposite gender and self
       const userResults: SearchResult[] =
-        users?.map((user) => ({
-          id: user.id,
-          type: "user" as const,
-          title: user.full_name || user.username,
-          subtitle: `@${user.username}`,
-          image: user.profile_image,
-          username: user.username,
-        })) || [];
+        users
+          ?.filter((searchUser) => {
+            // Don't show self
+            if (searchUser.id === user?.id) return false;
+            // Show same gender only
+            if (currentUserGender && searchUser.gender !== currentUserGender) {
+              return false;
+            }
+            return true;
+          })
+          .map((user) => ({
+            id: user.id,
+            type: "user" as const,
+            title: user.full_name || user.username,
+            subtitle: `@${user.username}`,
+            image: user.profile_image,
+            username: user.username,
+          })) || [];
 
       setSearchResults(userResults);
       setShowSearchResults(true);
@@ -564,9 +585,12 @@ export default function Header() {
             <div className="space-y-2 px-4">
               {navigation.map((item) => 
                 item.label === "Notifications" ? (
-                  <div key={item.label} className="flex items-center justify-between px-3 py-2">
-                    <span className="text-sm font-medium">Notifications</span>
+                  <div
+                    key={item.label}
+                    className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-accent/50 transition-colors"
+                  >
                     <NotificationCenter />
+                    <span className="text-sm font-medium">Notifications</span>
                   </div>
                 ) : (
                   <button
@@ -591,21 +615,6 @@ export default function Header() {
 
             {/* Mobile Menu Footer */}
             <div className="border-t border-border/20 pt-4 mt-4 px-4">
-              <button
-                onClick={() => {
-                  router.push(
-                    userProfile
-                      ? `/profile/${userProfile.username}`
-                      : "/profile"
-                  );
-                  setShowMobileMenu(false);
-                }}
-                className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-accent/50 transition-colors mb-2"
-              >
-                <UserIcon className="w-5 h-5 text-muted-foreground" />
-                <span className="text-sm font-medium">Profile</span>
-              </button>
-
               <button
                 onClick={() => {
                   router.push("/settings");

@@ -4,7 +4,7 @@ import { useThemeSafe } from "@/lib/use-theme-safe";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { UserPlus, UserCheck, Clock, X } from "lucide-react";
+import { UserPlus, UserCheck, Clock, X, Share2 } from "lucide-react";
 
 interface ProfileHeaderProps {
   user: any;
@@ -337,7 +337,6 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
                 {user.bio}
               </p>
             )}
-            
             {/* Friend Action Buttons */}
             {!isOwnProfile && currentUserId && (
               <div className="flex gap-2 mt-4">
@@ -418,6 +417,25 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
                   </button>
                 )}
               </div>
+            )}
+
+            {/* Share Profile Button - Only on own profile */}
+            {isOwnProfile && (
+              <button
+                onClick={() => {
+                  const profileUrl = `${window.location.origin}/profile/${user.username}`;
+                  navigator.clipboard.writeText(profileUrl);
+                  alert("Profile link copied to clipboard!");
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition mt-4 ${
+                  theme === 'light'
+                    ? 'bg-[oklch(0.65_0.12_35)] hover:bg-[oklch(0.7_0.14_30)] text-[oklch(0.98_0.01_60)] shadow-lg'
+                    : 'bg-cyan-500 hover:bg-cyan-400 text-slate-900 shadow-lg shadow-cyan-500/50'
+                }`}
+              >
+                <Share2 size={18} />
+                Share Profile
+              </button>
             )}
           </div>
         </div>

@@ -250,3 +250,28 @@
 .animate-audio-pulse {
   animation: audioPulse 0.3s ease-out;
 }
+
+/* Custom Scrollbar Styles */
+.mahram-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) var(--card);
+}
+
+.mahram-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mahram-scrollbar::-webkit-scrollbar-track {
+  background: var(--card);
+  border-radius: 10px;
+}
+
+.mahram-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+  border: 2px solid var(--card);
+}
+
+.mahram-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
