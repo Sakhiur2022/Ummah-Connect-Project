@@ -137,17 +137,22 @@ export default function ChatBox({ selectedUserId }: ChatBoxProps) {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b border-gray-700 flex items-center space-x-3">
-        <img
-          src={chatUser?.profile_image || '/images/default-avatar.png'}
-          alt={chatUser?.full_name}
-          className="w-10 h-10 rounded-full object-cover"
-          onError={(e) => (e.currentTarget.src = 'https://placehold.co/40x40/333/FFF?text=E')}
-        />
+        {chatUser?.profile_image ? (
+          <img
+            src={chatUser.profile_image}
+            alt={chatUser.full_name}
+            className="w-10 h-10 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-linear-to-br from-amber-100 to-yellow-100 text-amber-900 flex items-center justify-center font-bold text-sm">
+            {chatUser?.full_name?.charAt(0) || 'U'}
+          </div>
+        )}
         <h3 className="font-bold">{chatUser?.full_name || 'Unknown User'}</h3>
       </div>
 
       {/* Messages */}
-      <div className="flex-grow p-4 space-y-4 overflow-y-auto">
+      <div className="grow p-4 space-y-4 overflow-y-auto">
         {messages.map((msg) => (
           <div
             key={msg.id}
