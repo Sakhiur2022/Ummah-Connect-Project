@@ -1,6 +1,3 @@
-profile page
-
-
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileAnimatedBackground } from "@/components/background/profile-animated-background";
@@ -10,12 +7,10 @@ import { ProfileFeed } from "@/components/profile/profile-feed";
 import Header from "@/components/ui/header";
 import MahramAccessModal from "@/components/profile/mahram-access-modal";
 
-// CHANGE: No curly braces around PhotoGallery
 import PhotoGallery from "@/components/profile/PhotoGallery"; 
 
 export const dynamic = "force-dynamic";
 
-// ... keep the rest of the file exactly as it was ...
 
 interface ProfilePageProps {
   params: {
