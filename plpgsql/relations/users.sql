@@ -19,3 +19,6 @@ create table public.users (
     )
   )
 ) TABLESPACE pg_default;
+
+alter table users
+add column notifications_enabled boolean not null default true;

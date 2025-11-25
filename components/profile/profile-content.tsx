@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import FriendsList from "./FriendsList";
+import MahramList from "./MahramList";
+import MahramAndFriendsCard from "./MahramAndFriendsCard";
 
 interface ProfileContentProps {
   userId: string;
@@ -182,6 +184,11 @@ export function ProfileContent({ userId, username }: ProfileContentProps) {
       {/* Friends */}
       <motion.div variants={itemVariants}>
         <FriendsList userId={userId} currentUserId={currentUserId} />
+      </motion.div>
+
+      {/* Mahram and Friends Card */}
+      <motion.div variants={itemVariants}>
+        <MahramAndFriendsCard userId={userId} currentUserId={currentUserId} />
       </motion.div>
     </motion.div>
   );

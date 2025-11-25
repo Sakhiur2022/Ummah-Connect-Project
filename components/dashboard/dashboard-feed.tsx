@@ -35,6 +35,7 @@ interface Post {
 interface QuranAyah {
   number: number;
   text: string;
+  englishTranslation?: string;
   surah: {
     number: number;
     name: string;
@@ -57,6 +58,7 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
   const [currentDate, setCurrentDate] = useState("");
   const [quranAyah, setQuranAyah] = useState<QuranAyah | null>(null);
   const [loadingAyah, setLoadingAyah] = useState(true);
+  const [ayahError, setAyahError] = useState(false);
 
   // Post Composer State
   const [content, setContent] = useState("");
@@ -89,6 +91,7 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
     const fetchQuranAyah = async () => {
       try {
         setLoadingAyah(true);
+        setAyahError(false);
         let arabicData = null;
         let attempts = 0;
         const maxAttempts = 5;
@@ -97,21 +100,60 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
         while (((!arabicData?.data) && attempts < maxAttempts)) {
           attempts++;
           const randomSurah = Math.floor(Math.random() * 114) + 1;
-          const randomAyah = Math.floor(Math.random() * 286) + 1; // Max ayahs in Quran is 286
 
           try {
+            // Fetch surah metadata to get the correct number of ayahs
+            const surahMetaUrl = `https://api.alquran.cloud/v1/surah/${randomSurah}`;
+            const surahMetaResponse = await fetch(surahMetaUrl);
+            
+            if (!surahMetaResponse.ok) {
+              console.warn(`Surah ${randomSurah} metadata not found`);
+              continue;
+            }
+            
+            const surahMetaData = await surahMetaResponse.json();
+            const maxAyahsInSurah = surahMetaData?.data?.numberOfAyahs || 286;
+            const randomAyah = Math.floor(Math.random() * maxAyahsInSurah) + 1;
+            
+            console.log(`Attempt ${attempts}: Fetching Surah ${randomSurah}, Ayah ${randomAyah} (max ayahs: ${maxAyahsInSurah})`);
+            
             // Fetch Arabic with harkat - use correct API format
             const arabicUrl = `https://api.alquran.cloud/v1/ayah/${randomSurah}:${randomAyah}?edition=quran-simple`;
+            console.log("Fetching Arabic from:", arabicUrl);
             
             const arabicResponse = await fetch(arabicUrl);
             
             if (!arabicResponse.ok) {
+              console.warn(`Ayah ${randomSurah}:${randomAyah} not found (status ${arabicResponse.status})`);
               continue;
             }
             
             arabicData = await arabicResponse.json();
+            console.log("Arabic response:", arabicData);
 
             if (arabicData?.data) {
+              // Arabic text fetched successfully, now fetch English translation
+              try {
+                const surahNum = arabicData.data.surah.number;
+                const englishUrl = `https://api.alquran.cloud/v1/surah/${surahNum}/en.asad`;
+                console.log("Fetching English translation from:", englishUrl);
+                
+                const englishResponse = await fetch(englishUrl);
+                if (englishResponse.ok) {
+                  const englishData = await englishResponse.json();
+                  
+                  if (englishData?.data?.ayahs) {
+                    const ayahIndex = randomAyah - 1; // 0-indexed
+                    if (englishData.data.ayahs[ayahIndex]?.text) {
+                      arabicData.data.englishTranslation = englishData.data.ayahs[ayahIndex].text;
+                      console.log("English translation found:", arabicData.data.englishTranslation);
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error("Error fetching English translation:", error);
+              }
+              
               break;
             }
           } catch (error) {
@@ -125,9 +167,11 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
           setQuranAyah(arabicData.data);
         } else {
           console.warn("Failed to fetch Quran ayah after", maxAttempts, "attempts");
+          setAyahError(true);
         }
       } catch (error) {
         console.error("Error fetching Quran ayah:", error);
+        setAyahError(true);
       } finally {
         setLoadingAyah(false);
       }
@@ -437,6 +481,10 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
             <div className="flex items-center justify-center py-4">
               <div className="w-6 h-6 border-3 border-amber-200 border-t-amber-600 rounded-full animate-spin" />
             </div>
+          ) : ayahError ? (
+            <div className={`p-4 rounded-lg text-center ${theme === "light" ? "bg-red-50 text-red-700" : "bg-red-900/30 text-red-200"}`}>
+              <p className="font-semibold">Please refresh this page again</p>
+            </div>
           ) : quranAyah ? (
             <div className={`p-4 rounded-lg space-y-3 ${theme === "light" ? "bg-amber-50" : "bg-slate-700/50"}`}>
               {/* Arabic Text */}
@@ -446,6 +494,13 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
               >
                 {quranAyah.text}
               </p>
+
+              {/* English Translation */}
+              {quranAyah.englishTranslation && (
+                <p className={`text-sm leading-relaxed ${theme === "light" ? "text-gray-700" : "text-slate-200"} border-t ${theme === "light" ? "border-amber-200" : "border-slate-600"} pt-3`}>
+                  {quranAyah.englishTranslation}
+                </p>
+              )}
               
               {/* Surah Reference with English Name */}
               {quranAyah.surah && (

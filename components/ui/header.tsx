@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   ArrowLeft,
+  Bot,
 } from "lucide-react";
 import ThemeToggleButton from "@/components/header/theme-toggle-button";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
@@ -193,6 +194,11 @@ export default function Header() {
       label: "Notifications",
       href: "/notifications",
       badge: notifications,
+    },
+    {
+      icon: Bot,
+      label: "Chatbot",
+      href: "/chatbot",
     },
   ];
 
@@ -584,7 +590,19 @@ export default function Header() {
             {/* Navigation Items */}
             <div className="space-y-2 px-4">
               {navigation.map((item) => 
-                item.label === "Notifications" ? (
+                item.label === "Chatbot" ? (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      router.push(item.href);
+                      setShowMobileMenu(false);
+                    }}
+                    className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-accent/50 transition-colors"
+                  >
+                    <item.icon className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </button>
+                ) : item.label === "Notifications" ? (
                   <div
                     key={item.label}
                     className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-accent/50 transition-colors"

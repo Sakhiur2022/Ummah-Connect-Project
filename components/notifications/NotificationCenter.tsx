@@ -369,11 +369,11 @@ export function NotificationCenter() {
                             <div className="flex-1 min-w-0">
                               <Link
                                 href={`/profile/${notif.actor?.username || "user"}`}
-                                className={`text-sm font-semibold hover:underline truncate block ${theme === 'light' ? 'text-[oklch(0.15_0.02_240)]' : 'text-[oklch(0.95_0.01_60)]'}`}
+                                className={`text-sm font-semibold hover:underline truncate block ${theme === 'light' ? 'text-white' : 'text-[oklch(0.95_0.01_60)]'}`}
                               >
                                 {notif.actor?.full_name || "User"}
                               </Link>
-                              <p className={`text-xs ${theme === 'light' ? 'text-[oklch(0.45_0.05_60)]' : 'text-[oklch(0.65_0.02_60)]'}`}>
+                              <p className={`text-xs ${theme === 'light' ? 'text-white' : 'text-[oklch(0.65_0.02_60)]'}`}>
                                 Sent a friend request
                               </p>
                             </div>
@@ -442,10 +442,10 @@ export function NotificationCenter() {
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <p className={`text-sm ${theme === 'light' ? 'text-[oklch(0.15_0.02_240)]' : 'text-[oklch(0.95_0.01_60)]'}`}>
+                              <p className={`text-sm ${theme === 'light' ? 'text-white' : 'text-[oklch(0.95_0.01_60)]'}`}>
                                 {getNotificationMessage(notif)}
                               </p>
-                              <p className={`text-xs mt-1 ${theme === 'light' ? 'text-[oklch(0.45_0.05_60)]' : 'text-[oklch(0.65_0.02_60)]'}`}>
+                              <p className={`text-xs mt-1 ${theme === 'light' ? 'text-white' : 'text-[oklch(0.65_0.02_60)]'}`}>
                                 {new Date(notif.created_at).toLocaleDateString()}
                               </p>
                             </div>
@@ -472,10 +472,10 @@ export function NotificationCenter() {
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <p className={`text-sm ${theme === 'light' ? 'text-[oklch(0.15_0.02_240)]' : 'text-[oklch(0.95_0.01_60)]'}`}>
+                              <p className={`text-sm ${theme === 'light' ? 'text-white' : 'text-[oklch(0.95_0.01_60)]'}`}>
                                 {getNotificationMessage(notif)}
                               </p>
-                              <p className={`text-xs mt-1 ${theme === 'light' ? 'text-[oklch(0.45_0.05_60)]' : 'text-[oklch(0.65_0.02_60)]'}`}>
+                              <p className={`text-xs mt-1 ${theme === 'light' ? 'text-white' : 'text-[oklch(0.65_0.02_60)]'}`}>
                                 {new Date(notif.created_at).toLocaleDateString()}
                               </p>
                             </div>
@@ -569,11 +569,11 @@ export function NotificationCenter() {
                             <div className="flex-1 min-w-0">
                               <Link
                                 href={`/profile/${notif.actor?.username || "user"}`}
-                                className="text-sm font-semibold text-foreground hover:underline truncate block"
+                                className={`text-sm font-semibold hover:underline truncate block ${theme === 'light' ? 'text-white' : 'text-foreground'}`}
                               >
                                 {notif.actor?.full_name || "User"}
                               </Link>
-                              <p className="text-xs text-muted-foreground">
+                              <p className={`text-xs ${theme === 'light' ? 'text-white' : 'text-muted-foreground'}`}>
                                 Sent a friend request
                               </p>
                             </div>
@@ -642,10 +642,10 @@ export function NotificationCenter() {
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm text-foreground">
+                              <p className={`text-sm ${theme === 'light' ? 'text-white' : 'text-foreground'}`}>
                                 {getNotificationMessage(notif)}
                               </p>
-                              <p className="text-xs text-muted-foreground mt-1">
+                              <p className={`text-xs mt-1 ${theme === 'light' ? 'text-white' : 'text-muted-foreground'}`}>
                                 {new Date(notif.created_at).toLocaleDateString()}
                               </p>
                             </div>
@@ -672,10 +672,10 @@ export function NotificationCenter() {
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm text-foreground">
+                              <p className={`text-sm ${theme === 'light' ? 'text-white' : 'text-foreground'}`}>
                                 {getNotificationMessage(notif)}
                               </p>
-                              <p className="text-xs text-muted-foreground mt-1">
+                              <p className={`text-xs mt-1 ${theme === 'light' ? 'text-white' : 'text-muted-foreground'}`}>
                                 {new Date(notif.created_at).toLocaleDateString()}
                               </p>
                             </div>

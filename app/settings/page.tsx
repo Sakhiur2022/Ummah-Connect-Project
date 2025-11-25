@@ -6,6 +6,7 @@ const supabase = createClient();
 import { useAuth } from '@/hooks/useAuth';
 import { User } from '@supabase/supabase-js';
 import Header from '@/components/ui/header';
+import NotificationToggle from '@/components/settings/NotificationToggle';
 
 // Helper component for each setting card
 const SettingsCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -226,6 +227,9 @@ export default function SettingsPage() {
         {/* --- Message Area --- */}
         {message && <div className="p-3 rounded-md bg-green-600 text-white">{message}</div>}
         {error && <div className="p-3 rounded-md bg-red-600 text-white">{error}</div>}
+
+        {/* --- Notification Settings --- */}
+        <NotificationToggle />
 
       </div>
     </div>
