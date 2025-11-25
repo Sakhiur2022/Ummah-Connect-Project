@@ -1,18 +1,18 @@
-import { ProfileAnimatedBackground } from '@/components/background/profile-animated-background'
-import Header from '@/components/ui/header'
-import React from 'react'
+// app/chatbot/page.tsx
+// Server component: Entry point for the chatbot page with emotional safety analysis
 
-const page = () => {
+import { Metadata } from 'next';
+import ChatContainer from '@/components/chatbot/ChatContainer';
+
+export const metadata: Metadata = {
+  title: 'Emotional Safety Chat | Ummah Connect',
+  description: 'Analyze text for emotional safety and wellbeing',
+};
+
+export default function ChatbotPage() {
   return (
-   <>
-    <Header />
-    <ProfileAnimatedBackground/>
-    <div className="flex items-center justify-center h-screen">
-
-      <h1 className="text-4xl font-bold">Chatbot Page Coming Soon!</h1>
-    </div>
-   </>
-  )
+    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+      <ChatContainer />
+    </main>
+  );
 }
-
-export default page
