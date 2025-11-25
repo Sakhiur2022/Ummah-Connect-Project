@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import type React from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useThemeSafe } from "@/lib/use-theme-safe";
@@ -24,20 +25,7 @@ interface Comment {
   };
   reactionCount?: number;
   userReacted?: boolean;
-  replies?: Reply[];
-}
-
-interface Reply {
-  id: string;
-  user_id: string;
-  comment_id: string;
-  content: string;
-  created_at: string;
-  creator?: {
-    full_name: string;
-    username: string;
-    profile_image?: string;
-  };
+  replies?: any[];
 }
 
 export function CommentSection({
@@ -56,37 +44,33 @@ export function CommentSection({
   const supabase = createClient();
 
   // Theme-aware classes
-  const inputBgClass = theme === "light"
-    ? "bg-gray-100 border-gray-300 text-gray-900 placeholder-gray-500"
-    : "bg-slate-800/40 border-slate-700/40 text-cyan-50 placeholder-slate-400";
+  const inputBgClass =
+    theme === "light"
+      ? "bg-white/80 border-amber-400 text-amber-900 placeholder-amber-600"
+      : "bg-slate-800/40 border-slate-700/40 text-cyan-50 placeholder-slate-400";
 
-  const commentBgClass = theme === "light"
-    ? "bg-gray-100 border-gray-300"
-    : "bg-slate-800/40 border-slate-700/40";
+  const commentBgClass =
+    theme === "light"
+      ? "bg-amber-100/90 border-amber-500"
+      : "bg-slate-800/40 border-slate-700/40";
 
-  const textClass = theme === "light"
-    ? "text-gray-900"
-    : "text-cyan-50";
+  const textClass = theme === "light" ? "text-amber-950" : "text-cyan-50";
 
-  const secondaryTextClass = theme === "light"
-    ? "text-gray-600"
-    : "text-cyan-200";
+  const secondaryTextClass =
+    theme === "light" ? "text-amber-800" : "text-cyan-200";
 
-  const mutedTextClass = theme === "light"
-    ? "text-gray-500"
-    : "text-slate-400";
+  const mutedTextClass =
+    theme === "light" ? "text-amber-700" : "text-slate-400";
 
-  const buttonClass = theme === "light"
-    ? "bg-amber-500 hover:bg-amber-600 text-white"
-    : "bg-cyan-600/50 hover:bg-cyan-600/70 text-cyan-50";
+  const buttonClass =
+    theme === "light"
+      ? "bg-amber-600 hover:bg-amber-700 text-white shadow-md hover:shadow-lg"
+      : "bg-cyan-600/50 hover:bg-cyan-600/70 text-cyan-50";
 
-  const avatarBgClass = theme === "light"
-    ? "bg-gray-300"
-    : "bg-slate-800/60";
+  const avatarBgClass = theme === "light" ? "bg-amber-300" : "bg-slate-800/60";
 
-  const avatarTextClass = theme === "light"
-    ? "text-amber-600"
-    : "text-cyan-300";
+  const avatarTextClass =
+    theme === "light" ? "text-amber-900" : "text-cyan-300";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -149,7 +133,9 @@ export function CommentSection({
                 replies: repliesData
                   ? repliesData.map((r: any) => ({
                       ...r,
-                      creator: Array.isArray(r.creator) ? r.creator[0] : r.creator,
+                      creator: Array.isArray(r.creator)
+                        ? r.creator[0]
+                        : r.creator,
                     }))
                   : [],
               };
@@ -180,7 +166,7 @@ export function CommentSection({
         },
         async (payload) => {
           const newCommentData = payload.new as any;
-          
+
           // Fetch full comment data with creator info
           const { data: fullComment } = await supabase
             .from("COMMENTS")
@@ -356,15 +342,23 @@ export function CommentSection({
       {userId && (
         <form onSubmit={handleCommentSubmit} className="space-y-3">
           <div className="flex gap-3">
-            <div className={`w-8 h-8 rounded-full shrink-0 ${avatarBgClass} flex items-center justify-center`}>
-              <span className={`text-xs font-bold ${avatarTextClass}`}>You</span>
+            <div
+              className={`w-8 h-8 rounded-full shrink-0 ${avatarBgClass} flex items-center justify-center`}
+            >
+              <span className={`text-xs font-bold ${avatarTextClass}`}>
+                You
+              </span>
             </div>
             <textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Write a comment..."
               maxLength={500}
-              className={`flex-1 p-2 border rounded-lg ${inputBgClass} focus:outline-none focus:ring-2 ${theme === "light" ? "focus:ring-amber-500/50" : "focus:ring-cyan-500/50"} resize-none text-sm`}
+              className={`flex-1 p-2 border rounded-lg ${inputBgClass} focus:outline-none focus:ring-2 ${
+                theme === "light"
+                  ? "focus:ring-amber-500/50"
+                  : "focus:ring-cyan-500/50"
+              } resize-none text-sm`}
               rows={2}
             />
           </div>
@@ -402,11 +396,13 @@ export function CommentSection({
         ) : comments.length > 0 ? (
           comments.map((comment) => (
             <div key={comment.id} className="flex gap-3">
-              <div className={`w-8 h-8 rounded-full shrink-0 ${avatarBgClass} flex items-center justify-center overflow-hidden`}>
+              <div
+                className={`w-8 h-8 rounded-full shrink-0 ${avatarBgClass} flex items-center justify-center overflow-hidden`}
+              >
                 {comment.creator?.profile_image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={comment.creator.profile_image}
+                    src={comment.creator.profile_image || "/placeholder.svg"}
                     alt={comment.creator.full_name}
                     className="w-full h-full object-cover"
                   />
@@ -420,9 +416,14 @@ export function CommentSection({
               <div className="flex-1 min-w-0">
                 <div className={`border rounded-lg p-2 ${commentBgClass}`}>
                   <div className="flex items-center justify-between">
-                    <Link href={`/profile/${comment.creator?.username}`} className="hover:opacity-80 transition-opacity">
+                    <Link
+                      href={`/profile/${comment.creator?.username}`}
+                      className="hover:opacity-80 transition-opacity"
+                    >
                       <div>
-                        <p className={`text-xs font-semibold ${secondaryTextClass}`}>
+                        <p
+                          className={`text-xs font-semibold ${secondaryTextClass}`}
+                        >
                           {comment.creator?.full_name}
                         </p>
                         <p className={`text-xs ${mutedTextClass}`}>
@@ -430,7 +431,13 @@ export function CommentSection({
                         </p>
                       </div>
                     </Link>
-                    <button className={`p-1 rounded transition-colors ${theme === "light" ? "hover:bg-gray-200" : "hover:bg-slate-700/40"}`}>
+                    <button
+                      className={`p-1 rounded transition-colors ${
+                        theme === "light"
+                          ? "hover:bg-amber-100"
+                          : "hover:bg-slate-700/40"
+                      }`}
+                    >
                       <MoreVertical className={`w-3 h-3 ${mutedTextClass}`} />
                     </button>
                   </div>
@@ -440,14 +447,30 @@ export function CommentSection({
                   </p>
                 </div>
 
-                <div className={`flex items-center gap-2 mt-1 text-xs ${mutedTextClass}`}>
+                <div
+                  className={`flex items-center gap-2 mt-1 text-xs ${mutedTextClass}`}
+                >
                   <span>{formatDate(comment.created_at)}</span>
-                  <button className={`flex items-center gap-1 ${theme === "light" ? "hover:text-amber-600" : "hover:text-cyan-300"}`}>
+                  <button
+                    className={`flex items-center gap-1 ${
+                      theme === "light"
+                        ? "hover:text-amber-600"
+                        : "hover:text-cyan-300"
+                    }`}
+                  >
                     <Heart size={12} />
                   </button>
-                  <button 
-                    onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                    className={`flex items-center gap-1 ${theme === "light" ? "hover:text-amber-600" : "hover:text-cyan-300"}`}
+                  <button
+                    onClick={() =>
+                      setReplyingTo(
+                        replyingTo === comment.id ? null : comment.id
+                      )
+                    }
+                    className={`flex items-center gap-1 ${
+                      theme === "light"
+                        ? "hover:text-amber-600"
+                        : "hover:text-cyan-300"
+                    }`}
                   >
                     <Reply size={12} />
                   </button>
@@ -455,14 +478,25 @@ export function CommentSection({
 
                 {/* Reply Form */}
                 {replyingTo === comment.id && userId && (
-                  <form onSubmit={(e) => handleReplySubmit(e, comment.id)} className={`mt-3 pt-3 ${theme === "light" ? "border-gray-300" : "border-slate-700/30"} border-t`}>
+                  <form
+                    onSubmit={(e) => handleReplySubmit(e, comment.id)}
+                    className={`mt-3 pt-3 ${
+                      theme === "light"
+                        ? "border-gray-300"
+                        : "border-slate-700/30"
+                    } border-t`}
+                  >
                     <div className="flex gap-2">
                       <textarea
                         value={replyText}
                         onChange={(e) => setReplyText(e.target.value)}
                         placeholder="Write a reply..."
                         maxLength={300}
-                        className={`flex-1 p-2 border rounded-lg ${inputBgClass} focus:outline-none focus:ring-2 ${theme === "light" ? "focus:ring-amber-500/50" : "focus:ring-cyan-500/50"} resize-none text-sm`}
+                        className={`flex-1 p-2 border rounded-lg ${inputBgClass} focus:outline-none focus:ring-2 ${
+                          theme === "light"
+                            ? "focus:ring-amber-500/50"
+                            : "focus:ring-cyan-500/50"
+                        } resize-none text-sm`}
                         rows={2}
                       />
                     </div>
@@ -474,7 +508,11 @@ export function CommentSection({
                         <button
                           type="button"
                           onClick={() => setReplyingTo(null)}
-                          className={`px-3 py-1 rounded text-sm ${theme === "light" ? "hover:bg-gray-200 text-gray-600" : "hover:bg-slate-700/40 text-slate-400"} transition-colors`}
+                          className={`px-3 py-1 rounded text-sm ${
+                            theme === "light"
+                              ? "hover:bg-amber-100 text-amber-700"
+                              : "hover:bg-slate-700/40 text-slate-400"
+                          } transition-colors`}
                         >
                           Cancel
                         </button>
@@ -502,14 +540,25 @@ export function CommentSection({
 
                 {/* Display Replies */}
                 {comment.replies && comment.replies.length > 0 && (
-                  <div className={`mt-3 pt-3 space-y-2 ${theme === "light" ? "border-gray-300" : "border-slate-700/30"} border-t`}>
+                  <div
+                    className={`mt-3 pt-3 space-y-2 ${
+                      theme === "light"
+                        ? "border-gray-300"
+                        : "border-slate-700/30"
+                    } border-t`}
+                  >
                     {comment.replies.map((reply) => (
                       <div key={reply.id} className="flex gap-2 ml-4">
-                        <div className={`w-6 h-6 rounded-full shrink-0 ${avatarBgClass} flex items-center justify-center overflow-hidden text-xs`}>
+                        <div
+                          className={`w-6 h-6 rounded-full shrink-0 ${avatarBgClass} flex items-center justify-center overflow-hidden text-xs`}
+                        >
                           {reply.creator?.profile_image ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={reply.creator.profile_image}
+                              src={
+                                reply.creator.profile_image ||
+                                "/placeholder.svg"
+                              }
                               alt={reply.creator.full_name}
                               className="w-full h-full object-cover"
                             />
@@ -521,11 +570,22 @@ export function CommentSection({
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className={`border rounded p-2 ${theme === "light" ? "bg-gray-50 border-gray-200" : "bg-slate-900/20 border-slate-700/20"}`}>
+                          <div
+                            className={`border rounded p-2 ${
+                              theme === "light"
+                                ? "bg-white border-amber-200"
+                                : "bg-slate-900/20 border-slate-700/20"
+                            }`}
+                          >
                             <div className="flex items-center justify-between">
-                              <Link href={`/profile/${reply.creator?.username}`} className="hover:opacity-80 transition-opacity">
+                              <Link
+                                href={`/profile/${reply.creator?.username}`}
+                                className="hover:opacity-80 transition-opacity"
+                              >
                                 <div>
-                                  <p className={`text-xs font-semibold ${secondaryTextClass}`}>
+                                  <p
+                                    className={`text-xs font-semibold ${secondaryTextClass}`}
+                                  >
                                     {reply.creator?.full_name}
                                   </p>
                                   <p className={`text-xs ${mutedTextClass}`}>
@@ -535,12 +595,16 @@ export function CommentSection({
                               </Link>
                             </div>
 
-                            <p className={`text-xs mt-1 wrap-break-word ${textClass}`}>
+                            <p
+                              className={`text-xs mt-1 wrap-break-word ${textClass}`}
+                            >
                               {reply.content}
                             </p>
                           </div>
 
-                          <div className={`flex items-center gap-2 mt-1 text-xs ${mutedTextClass}`}>
+                          <div
+                            className={`flex items-center gap-2 mt-1 text-xs ${mutedTextClass}`}
+                          >
                             <span>{formatDate(reply.created_at)}</span>
                           </div>
                         </div>

@@ -4,7 +4,16 @@ import React, { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useThemeSafe } from "@/lib/use-theme-safe";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MessageCircle, Share2, BookOpen, Calendar, Moon, ImageIcon, X, Send, Loader2 } from "lucide-react";
+import {
+  Heart,
+  BookOpen,
+  Calendar,
+  Moon,
+  ImageIcon,
+  X,
+  Send,
+  Loader2,
+} from "lucide-react";
 import { PostCard } from "@/components/post/post-card";
 
 interface DashboardFeedProps {
@@ -50,12 +59,22 @@ interface QuranAyah {
   };
 }
 
-export function DashboardFeed({ currentUserId, currentUserName = "User", currentUserImage }: DashboardFeedProps) {
+export function DashboardFeed({
+  currentUserId,
+  currentUserName = "User",
+  currentUserImage,
+}: DashboardFeedProps) {
   const { theme } = useThemeSafe();
   const supabase = createClient();
 
   // Greeting & Date State
   const [currentDate, setCurrentDate] = useState("");
+  const [hijriDate, setHijriDate] = useState<{
+    formatted: string;
+    month_name: string;
+    day: number;
+    year: number;
+  } | null>(null);
   const [quranAyah, setQuranAyah] = useState<QuranAyah | null>(null);
   const [loadingAyah, setLoadingAyah] = useState(true);
   const [ayahError, setAyahError] = useState(false);
@@ -84,6 +103,28 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
       day: "numeric",
     });
     setCurrentDate(dateStr);
+
+    // Fetch Hijri date
+    const fetchHijriDate = async () => {
+      try {
+        const formattedDate = today.toISOString().split("T")[0]; // YYYY-MM-DD format
+        const response = await fetch(
+          `https://www.ummahapi.com/api/hijri-date?date=${formattedDate}`
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data?.hijri) {
+            setHijriDate(data.data.hijri);
+            console.log("Hijri date fetched:", data.data.hijri);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching Hijri date:", error);
+      }
+    };
+
+    fetchHijriDate();
   }, []);
 
   // Fetch random Quran ayah
@@ -96,38 +137,91 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
         let attempts = 0;
         const maxAttempts = 5;
 
+        // List of specific ayahs to exclude (Tilawah Sajdah verses)
+        const excludedAyahs = [
+          { surah: 7, ayah: 206 }, // Al-A'raf
+          { surah: 13, ayah: 15 }, // Ar-Ra'd
+          { surah: 16, ayah: 50 }, // An-Nahl
+          { surah: 17, ayah: 109 }, // Al-Israa
+          { surah: 19, ayah: 58 }, // Maryam
+          { surah: 22, ayah: 18 }, // Al-Hajj
+          { surah: 22, ayah: 77 }, // Al-Hajj
+          { surah: 25, ayah: 60 }, // Al-Furqan
+          { surah: 27, ayah: 26 }, // An-Naml
+          { surah: 32, ayah: 15 }, // As-Sajdah
+          { surah: 38, ayah: 24 }, // Sad
+          { surah: 41, ayah: 38 }, // Fussilat
+          { surah: 53, ayah: 62 }, // An-Najm
+          { surah: 84, ayah: 21 }, // Inshiqaq
+          { surah: 96, ayah: 19 }, // Al-'Alaq
+        ];
+
         // Retry if ayah doesn't exist
-        while (((!arabicData?.data) && attempts < maxAttempts)) {
+        while (!arabicData?.data && attempts < maxAttempts) {
           attempts++;
-          const randomSurah = Math.floor(Math.random() * 114) + 1;
+          let randomSurah = Math.floor(Math.random() * 114) + 1;
+          let randomAyah = 0;
+          let isExcluded = true;
+
+          // Keep generating random ayah until we get one that's not excluded
+          while (isExcluded) {
+            randomSurah = Math.floor(Math.random() * 114) + 1;
+
+            try {
+              // Fetch surah metadata to get the correct number of ayahs
+              const surahMetaUrl = `https://api.alquran.cloud/v1/surah/${randomSurah}`;
+              const surahMetaResponse = await fetch(surahMetaUrl);
+
+              if (!surahMetaResponse.ok) {
+                console.warn(`Surah ${randomSurah} metadata not found`);
+                continue;
+              }
+
+              const surahMetaData = await surahMetaResponse.json();
+              const maxAyahsInSurah = surahMetaData?.data?.numberOfAyahs || 286;
+              randomAyah = Math.floor(Math.random() * maxAyahsInSurah) + 1;
+
+              // Check if this ayah is in the excluded list
+              isExcluded = excludedAyahs.some(
+                (excluded) =>
+                  excluded.surah === randomSurah && excluded.ayah === randomAyah
+              );
+            } catch (error) {
+              console.error("Error checking surah metadata:", error);
+              continue;
+            }
+          }
 
           try {
-            // Fetch surah metadata to get the correct number of ayahs
+            // Fetch surah metadata to get the correct number of ayahs (already done above, using randomAyah)
             const surahMetaUrl = `https://api.alquran.cloud/v1/surah/${randomSurah}`;
             const surahMetaResponse = await fetch(surahMetaUrl);
-            
+
             if (!surahMetaResponse.ok) {
               console.warn(`Surah ${randomSurah} metadata not found`);
               continue;
             }
-            
+
             const surahMetaData = await surahMetaResponse.json();
             const maxAyahsInSurah = surahMetaData?.data?.numberOfAyahs || 286;
-            const randomAyah = Math.floor(Math.random() * maxAyahsInSurah) + 1;
-            
-            console.log(`Attempt ${attempts}: Fetching Surah ${randomSurah}, Ayah ${randomAyah} (max ayahs: ${maxAyahsInSurah})`);
-            
+
+            console.log(
+              `Attempt ${attempts}: Fetching Surah ${randomSurah}, Ayah ${randomAyah} (max ayahs: ${maxAyahsInSurah})`
+            );
+
             // Fetch Arabic with harkat - use correct API format
             const arabicUrl = `https://api.alquran.cloud/v1/ayah/${randomSurah}:${randomAyah}?edition=quran-simple`;
             console.log("Fetching Arabic from:", arabicUrl);
-            
+
             const arabicResponse = await fetch(arabicUrl);
-            
+
             if (!arabicResponse.ok) {
-              console.warn(`Ayah ${randomSurah}:${randomAyah} not found (status ${arabicResponse.status})`);
+              console.warn(
+                `Ayah ${randomSurah}:${randomAyah} not found (status ${arabicResponse.status})`
+              );
               continue;
             }
-            
+
             arabicData = await arabicResponse.json();
             console.log("Arabic response:", arabicData);
 
@@ -137,23 +231,27 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
                 const surahNum = arabicData.data.surah.number;
                 const englishUrl = `https://api.alquran.cloud/v1/surah/${surahNum}/en.asad`;
                 console.log("Fetching English translation from:", englishUrl);
-                
+
                 const englishResponse = await fetch(englishUrl);
                 if (englishResponse.ok) {
                   const englishData = await englishResponse.json();
-                  
+
                   if (englishData?.data?.ayahs) {
                     const ayahIndex = randomAyah - 1; // 0-indexed
                     if (englishData.data.ayahs[ayahIndex]?.text) {
-                      arabicData.data.englishTranslation = englishData.data.ayahs[ayahIndex].text;
-                      console.log("English translation found:", arabicData.data.englishTranslation);
+                      arabicData.data.englishTranslation =
+                        englishData.data.ayahs[ayahIndex].text;
+                      console.log(
+                        "English translation found:",
+                        arabicData.data.englishTranslation
+                      );
                     }
                   }
                 }
               } catch (error) {
                 console.error("Error fetching English translation:", error);
               }
-              
+
               break;
             }
           } catch (error) {
@@ -166,7 +264,11 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
           console.log("Setting Quran Ayah:", arabicData.data);
           setQuranAyah(arabicData.data);
         } else {
-          console.warn("Failed to fetch Quran ayah after", maxAttempts, "attempts");
+          console.warn(
+            "Failed to fetch Quran ayah after",
+            maxAttempts,
+            "attempts"
+          );
           setAyahError(true);
         }
       } catch (error) {
@@ -254,7 +356,9 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
         const postsWithCreator = postsData.map((p: any) => ({
           ...p,
           creator: Array.isArray(p.creator) ? p.creator[0] : p.creator,
-          post_counter: Array.isArray(p.post_counter) ? p.post_counter[0] : p.post_counter,
+          post_counter: Array.isArray(p.post_counter)
+            ? p.post_counter[0]
+            : p.post_counter,
         }));
         setPosts(postsWithCreator);
       }
@@ -434,15 +538,34 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`rounded-xl backdrop-blur-md p-6 border ${theme === "light" ? "border-gray-200/60 bg-white/40 shadow-lg shadow-gray-200/50" : "border-slate-700/60 bg-slate-900/40 shadow-lg shadow-black/50"}`}
+        transition={{ delay: 0 }}
+        className={`rounded-xl backdrop-blur-md p-6 border ${
+          theme === "light"
+            ? "border-amber-300 bg-white/70 shadow-lg shadow-amber-200/40"
+            : "border-slate-700/60 bg-slate-900/40 shadow-lg shadow-black/50"
+        }`}
       >
         <div className="flex items-center gap-3 mb-2">
-          <Moon className={`w-6 h-6 ${theme === "light" ? "text-amber-700" : "text-cyan-300"}`} />
-          <h1 className={`text-3xl sm:text-4xl font-bold`} style={{ fontFamily: "'Noto Kufi Arabic', sans-serif", color: theme === "light" ? "#1f2937" : "#f0f9ff" }}>
+          <Moon
+            className={`w-6 h-6 ${
+              theme === "light" ? "text-amber-700" : "text-cyan-300"
+            }`}
+          />
+          <h1
+            className={`text-3xl sm:text-4xl font-bold`}
+            style={{
+              fontFamily: "'Noto Kufi Arabic', sans-serif",
+              color: theme === "light" ? "#78350f" : "#f0f9ff",
+            }}
+          >
             السلام عليكم ورحمة الله وبركاته
           </h1>
         </div>
-        <p className={`text-lg ${theme === "light" ? "text-gray-600" : "text-slate-300"}`}>
+        <p
+          className={`text-lg ${
+            theme === "light" ? "text-amber-900" : "text-slate-300"
+          }`}
+        >
           Welcome back, {currentUserName}
         </p>
       </motion.div>
@@ -454,13 +577,59 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className={`rounded-xl backdrop-blur-md p-6 border ${theme === "light" ? "border-gray-200/60 bg-white/40 shadow-lg" : "border-slate-700/60 bg-slate-900/40 shadow-lg"}`}
+          className={`rounded-xl backdrop-blur-md p-6 border ${
+            theme === "light"
+              ? "border-amber-300 bg-white/70 shadow-lg"
+              : "border-slate-700/60 bg-slate-900/40 shadow-lg"
+          }`}
         >
           <div className="flex items-start gap-4">
-            <Calendar className={`w-8 h-8 ${theme === "light" ? "text-amber-700" : "text-cyan-300"} shrink-0 mt-1`} />
-            <div className="flex-1">
-              <p className={`text-sm font-semibold ${theme === "light" ? "text-amber-600" : "text-cyan-200"}`}>Today</p>
-              <p className={`text-lg font-bold ${theme === "light" ? "text-gray-900" : "text-slate-100"}`}>{currentDate}</p>
+            <Calendar
+              className={`w-8 h-8 ${
+                theme === "light" ? "text-amber-700" : "text-cyan-300"
+              } shrink-0 mt-1`}
+            />
+            <div className="flex-1 space-y-3">
+              <div>
+                <p
+                  className={`text-sm font-semibold ${
+                    theme === "light" ? "text-amber-700" : "text-cyan-200"
+                  }`}
+                >
+                  Gregorian Date
+                </p>
+                <p
+                  className={`text-lg font-bold ${
+                    theme === "light" ? "text-amber-950" : "text-slate-100"
+                  }`}
+                >
+                  {currentDate}
+                </p>
+              </div>
+              {hijriDate && (
+                <div
+                  className={`pt-2 border-t ${
+                    theme === "light"
+                      ? "border-amber-200"
+                      : "border-slate-700/40"
+                  }`}
+                >
+                  <p
+                    className={`text-sm font-semibold ${
+                      theme === "light" ? "text-amber-700" : "text-cyan-200"
+                    }`}
+                  >
+                    Hijri Date
+                  </p>
+                  <p
+                    className={`text-lg font-bold ${
+                      theme === "light" ? "text-amber-950" : "text-slate-100"
+                    }`}
+                  >
+                    {hijriDate.day} {hijriDate.month_name} {hijriDate.year} AH
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>
@@ -470,42 +639,85 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className={`rounded-xl backdrop-blur-md p-6 border ${theme === "light" ? "border-gray-200/60 bg-white/40 shadow-lg" : "border-slate-700/60 bg-slate-900/40 shadow-lg"}`}
+          className={`rounded-xl backdrop-blur-md p-6 border ${
+            theme === "light"
+              ? "border-amber-300 bg-white/70 shadow-lg"
+              : "border-slate-700/60 bg-slate-900/40 shadow-lg"
+          }`}
         >
           <div className="flex items-center gap-3 mb-4">
-            <BookOpen className={`w-6 h-6 ${theme === "light" ? "text-amber-700" : "text-cyan-300"}`} />
-            <h2 className={`text-lg font-bold ${theme === "light" ? "text-gray-900" : "text-slate-100"}`}>Daily Ayah</h2>
+            <BookOpen
+              className={`w-6 h-6 ${
+                theme === "light" ? "text-amber-700" : "text-cyan-300"
+              }`}
+            />
+            <h2
+              className={`text-lg font-bold ${
+                theme === "light" ? "text-amber-950" : "text-slate-100"
+              }`}
+            >
+              Daily Ayah
+            </h2>
           </div>
 
           {loadingAyah ? (
             <div className="flex items-center justify-center py-4">
-              <div className="w-6 h-6 border-3 border-amber-200 border-t-amber-600 rounded-full animate-spin" />
+              <div className="w-6 h-6 border-3 border-amber-200 border-t-amber-700 rounded-full animate-spin" />
             </div>
           ) : ayahError ? (
-            <div className={`p-4 rounded-lg text-center ${theme === "light" ? "bg-red-50 text-red-700" : "bg-red-900/30 text-red-200"}`}>
+            <div
+              className={`p-4 rounded-lg text-center ${
+                theme === "light"
+                  ? "bg-red-100 text-red-800 border border-red-300"
+                  : "bg-red-900/30 text-red-200"
+              }`}
+            >
               <p className="font-semibold">Please refresh this page again</p>
             </div>
           ) : quranAyah ? (
-            <div className={`p-4 rounded-lg space-y-3 ${theme === "light" ? "bg-amber-50" : "bg-slate-700/50"}`}>
+            <div
+              className={`p-4 rounded-lg space-y-3 ${
+                theme === "light" ? "bg-amber-100/60" : "bg-slate-700/50"
+              }`}
+            >
               {/* Arabic Text */}
-              <p 
-                className={`text-right ${theme === "light" ? "text-gray-900" : "text-slate-100"}`}
-                style={{ fontFamily: "'Noto Kufi Arabic', sans-serif", fontSize: "1.75rem", lineHeight: "2.5" }}
+              <p
+                className={`text-right ${
+                  theme === "light" ? "text-amber-950" : "text-slate-100"
+                }`}
+                style={{
+                  fontFamily: "'Noto Kufi Arabic', sans-serif",
+                  fontSize: "1.75rem",
+                  lineHeight: "2.5",
+                }}
               >
                 {quranAyah.text}
               </p>
 
               {/* English Translation */}
               {quranAyah.englishTranslation && (
-                <p className={`text-sm leading-relaxed ${theme === "light" ? "text-gray-700" : "text-slate-200"} border-t ${theme === "light" ? "border-amber-200" : "border-slate-600"} pt-3`}>
+                <p
+                  className={`text-sm leading-relaxed ${
+                    theme === "light" ? "text-amber-900" : "text-slate-200"
+                  } border-t ${
+                    theme === "light" ? "border-amber-300" : "border-slate-600"
+                  } pt-3`}
+                >
                   {quranAyah.englishTranslation}
                 </p>
               )}
-              
+
               {/* Surah Reference with English Name */}
               {quranAyah.surah && (
-                <p className={`text-xs ${theme === "light" ? "text-gray-600" : "text-slate-400"} text-right pt-2 border-t ${theme === "light" ? "border-amber-200" : "border-slate-600"}`}>
-                  — {quranAyah.surah.name} ({quranAyah.surah.englishName}), Ayah {quranAyah.numberInSurah}
+                <p
+                  className={`text-xs ${
+                    theme === "light" ? "text-amber-800" : "text-slate-400"
+                  } text-right pt-2 border-t ${
+                    theme === "light" ? "border-amber-300" : "border-slate-600"
+                  }`}
+                >
+                  — {quranAyah.surah.name} ({quranAyah.surah.englishName}), Ayah{" "}
+                  {quranAyah.numberInSurah}
                 </p>
               )}
             </div>
@@ -518,24 +730,46 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className={`rounded-xl backdrop-blur-md p-6 border ${theme === "light" ? "border-gray-200/60 bg-white/40 shadow-lg shadow-gray-200/50" : "border-slate-700/60 bg-slate-900/40 shadow-lg shadow-black/50"}`}
+        className={`rounded-xl backdrop-blur-md p-6 border ${
+          theme === "light"
+            ? "border-amber-300 bg-white/70 shadow-lg shadow-amber-200/40"
+            : "border-slate-700/60 bg-slate-900/40 shadow-lg shadow-black/50"
+        }`}
       >
         {/* Header with avatar */}
         <div className="flex items-center gap-4 mb-4">
           {currentUserImage ? (
             <img
-              src={currentUserImage}
+              src={currentUserImage || "/placeholder.svg"}
               alt={currentUserName}
               className="w-12 h-12 rounded-full object-cover"
             />
           ) : (
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${theme === "light" ? "bg-gray-300 text-gray-700" : "bg-slate-700 text-slate-300"}`}>
+            <div
+              className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                theme === "light"
+                  ? "bg-gray-300 text-gray-700"
+                  : "bg-slate-700 text-slate-300"
+              }`}
+            >
               {currentUserName.charAt(0).toUpperCase()}
             </div>
           )}
           <div className="flex-1">
-            <p className={`font-semibold ${theme === "light" ? "text-amber-900" : "text-cyan-100"}`}>{currentUserName}</p>
-            <p className={`text-sm ${theme === "light" ? "text-amber-700" : "text-slate-400"}`}>Share your thoughts</p>
+            <p
+              className={`font-semibold ${
+                theme === "light" ? "text-amber-900" : "text-cyan-100"
+              }`}
+            >
+              {currentUserName}
+            </p>
+            <p
+              className={`text-sm ${
+                theme === "light" ? "text-amber-700" : "text-slate-400"
+              }`}
+            >
+              Share your thoughts
+            </p>
           </div>
         </div>
 
@@ -550,7 +784,7 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
               isExpanded ? "min-h-32" : "min-h-12"
             } transition-all ${
               theme === "light"
-                ? "bg-gray-100/40 border border-gray-300/80 text-gray-900 placeholder-gray-500 focus:ring-amber-500/50"
+                ? "bg-amber-50/80 border border-amber-300 text-amber-950 placeholder-amber-700 focus:ring-amber-500/60"
                 : "bg-slate-800/40 border border-slate-700/80 text-cyan-50 placeholder-slate-400 focus:ring-cyan-500/50"
             }`}
           />
@@ -573,7 +807,7 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
                     className="relative group"
                   >
                     <img
-                      src={preview}
+                      src={preview || "/placeholder.svg"}
                       alt={`Preview ${index + 1}`}
                       className="w-full h-24 sm:h-32 object-cover rounded-lg"
                     />
@@ -595,7 +829,9 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`flex flex-wrap items-center gap-2 pt-4 border-t ${theme === "light" ? "border-gray-300/40" : "border-slate-700/40"}`}
+              className={`flex flex-wrap items-center gap-2 pt-4 border-t ${
+                theme === "light" ? "border-amber-200" : "border-slate-700/40"
+              }`}
             >
               <input
                 ref={fileInputRef}
@@ -612,8 +848,14 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
                 disabled={images.length >= 4 || isLoadingPost}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all ${
                   images.length >= 4 || isLoadingPost
-                    ? `opacity-50 cursor-not-allowed ${theme === "light" ? "text-gray-500" : "text-slate-400"}`
-                    : `${theme === "light" ? "text-amber-700 hover:bg-gray-200/40" : "text-cyan-100 hover:bg-slate-700/40"}`
+                    ? `opacity-50 cursor-not-allowed ${
+                        theme === "light" ? "text-amber-700" : "text-slate-400"
+                      }`
+                    : `${
+                        theme === "light"
+                          ? "text-amber-800 hover:bg-amber-200/60"
+                          : "text-cyan-100 hover:bg-slate-700/40"
+                      }`
                 }`}
               >
                 <ImageIcon size={20} />
@@ -623,7 +865,11 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
 
               <button
                 type="button"
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all ${theme === "light" ? "text-amber-700 hover:bg-gray-200/40" : "text-cyan-100 hover:bg-slate-700/40"}`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all ${
+                  theme === "light"
+                    ? "text-amber-800 hover:bg-amber-200/60"
+                    : "text-cyan-100 hover:bg-slate-700/40"
+                }`}
               >
                 <Heart size={20} />
                 <span className="hidden sm:inline">Feeling</span>
@@ -639,18 +885,30 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
                   setImages([]);
                   setImagePreviews([]);
                 }}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${theme === "light" ? "text-amber-700 hover:bg-gray-200/40" : "text-cyan-100 hover:bg-slate-700/40"}`}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  theme === "light"
+                    ? "text-amber-800 hover:bg-amber-200/60"
+                    : "text-cyan-100 hover:bg-slate-700/40"
+                }`}
               >
                 Cancel
               </button>
 
               <button
                 type="submit"
-                disabled={isLoadingPost || (!content.trim() && images.length === 0)}
+                disabled={
+                  isLoadingPost || (!content.trim() && images.length === 0)
+                }
                 className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-all ${
                   isLoadingPost || (!content.trim() && images.length === 0)
-                    ? `opacity-50 cursor-not-allowed ${theme === "light" ? "bg-amber-900/30" : "bg-cyan-900/30"}`
-                    : `${theme === "light" ? "bg-amber-600/50 text-white hover:bg-amber-600/70" : "bg-cyan-600/50 text-white hover:bg-cyan-600/70"}`
+                    ? `opacity-50 cursor-not-allowed ${
+                        theme === "light" ? "bg-amber-600/40" : "bg-cyan-900/30"
+                      }`
+                    : `${
+                        theme === "light"
+                          ? "bg-amber-600 text-white hover:bg-amber-700 shadow-md hover:shadow-lg"
+                          : "bg-cyan-600/50 text-white hover:bg-cyan-600/70"
+                      }`
                 }`}
               >
                 {isLoadingPost ? (
@@ -676,7 +934,11 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
         initial="hidden"
         animate="visible"
       >
-        <h2 className={`text-xl font-bold mb-6 ${theme === "light" ? "text-amber-900" : "text-cyan-100"}`}>
+        <h2
+          className={`text-xl font-bold mb-6 ${
+            theme === "light" ? "text-amber-950" : "text-cyan-100"
+          }`}
+        >
           Your Feed
         </h2>
 
@@ -685,7 +947,11 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className={`rounded-xl backdrop-blur-md p-6 border h-40 animate-pulse ${theme === "light" ? "border-gray-200/60 bg-gray-50/40" : "border-slate-700/60 bg-slate-900/40"}`}
+                className={`rounded-xl backdrop-blur-md p-6 border h-40 animate-pulse ${
+                  theme === "light"
+                    ? "border-amber-200 bg-amber-50/40"
+                    : "border-slate-700/60 bg-slate-900/40"
+                }`}
               />
             ))}
           </div>
@@ -708,16 +974,23 @@ export function DashboardFeed({ currentUserId, currentUserName = "User", current
                   createdAt={post.created_at}
                   currentUserId={currentUserId}
                   onPostDeleted={(postId) => {
-                    setPosts(posts.filter(p => p.post_id !== postId));
+                    setPosts(posts.filter((p) => p.post_id !== postId));
                   }}
                 />
               </motion.div>
             ))}
           </motion.div>
         ) : (
-          <div className={`rounded-xl backdrop-blur-md p-8 border text-center ${theme === "light" ? "border-gray-200/60 bg-gray-50/40 text-amber-700" : "border-slate-700/60 bg-slate-900/40 text-slate-300"}`}>
+          <div
+            className={`rounded-xl backdrop-blur-md p-8 border text-center ${
+              theme === "light"
+                ? "border-amber-300 bg-white/60 text-amber-900"
+                : "border-slate-700/60 bg-slate-900/40 text-slate-300"
+            }`}
+          >
             <p>
-              No posts yet. Start sharing your journey or add friends to see their posts!
+              No posts yet. Start sharing your journey or add friends to see
+              their posts!
             </p>
           </div>
         )}
