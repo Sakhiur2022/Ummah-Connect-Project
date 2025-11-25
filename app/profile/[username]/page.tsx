@@ -1,3 +1,6 @@
+profile page
+
+
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileAnimatedBackground } from "@/components/background/profile-animated-background";
@@ -6,6 +9,13 @@ import { ProfileContent } from "@/components/profile/profile-content";
 import { ProfileFeed } from "@/components/profile/profile-feed";
 import Header from "@/components/ui/header";
 import MahramAccessModal from "@/components/profile/mahram-access-modal";
+
+// CHANGE: No curly braces around PhotoGallery
+import PhotoGallery from "@/components/profile/PhotoGallery"; 
+
+export const dynamic = "force-dynamic";
+
+// ... keep the rest of the file exactly as it was ...
 
 interface ProfilePageProps {
   params: {
@@ -16,25 +26,18 @@ interface ProfilePageProps {
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const supabase = await createClient();
 
-  // Get current user
-  const {
-    data: { user: currentUser },
-  } = await supabase.auth.getUser();
+  const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-  // Fetch user profile
   const { data: user } = await supabase
     .from("users")
     .select("*")
     .eq("username", params.username)
     .single();
 
-  if (!user) {
-    notFound();
-  }
+  if (!user) notFound();
 
   const isOwnProfile = currentUser?.id === user.id;
 
-  // Check mahram access if not own profile and different gender
   let hasAccess = true;
   let accessReason = "";
   
@@ -54,7 +57,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     <div className="min-h-screen relative">
       <ProfileAnimatedBackground />
       <Header />
-      {/* Content with glassmorphism */}
       <div className="relative z-10">
         {!hasAccess ? (
           <MahramAccessModal 
@@ -67,7 +69,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           <>
             <ProfileHeader user={user} />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Main Feed */}
+              
+              {/* Main Feed Column */}
               <div className="lg:col-span-2">
                 <ProfileFeed 
                   userId={user.id} 
@@ -78,9 +81,15 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 />
               </div>
               
-              {/* Sidebar Profile Content */}
-              <div className="lg:col-span-1">
+              {/* Sidebar Column */}
+              <div className="lg:col-span-1 flex flex-col gap-6">
+                
+                {/* Existing Sidebar Content (About, Stats, Friends) */}
                 <ProfileContent userId={user.id} username={params.username} />
+                
+                {/* 2. Photo Gallery (Placed after other cards) */}
+                <PhotoGallery userId={user.id} />
+                
               </div>
             </div>
           </>
