@@ -134,7 +134,7 @@ export default function ChatMessage({ result }: ChatMessageProps) {
                   <span className="text-purple-300 ml-2">📞 {resource.phone}</span>
                 )}
                 {resource.url && (
-                  
+                  <a
                     href={resource.url}
                     target="_blank"
                     rel="noopener noreferrer"

@@ -175,7 +175,7 @@ export async function POST(req: NextRequest) {
     console.log('Calling Perspective API...');
     
     const perspectiveResponse = await fetch(
-      https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=AIzaSyDrrN-ZOg5nk0pmsm7oAKH_hBkGM33RSIs,
+      `https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=AIzaSyDrrN-ZOg5nk0pmsm7oAKH_hBkGM33RSIs`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -202,7 +202,7 @@ export async function POST(req: NextRequest) {
     if (!perspectiveResponse.ok) {
       const errorText = await perspectiveResponse.text();
       console.error('Perspective API error response:', errorText);
-      throw new Error(Perspective API error: ${perspectiveResponse.status} - ${errorText});
+      throw new Error(`Perspective API error: ${perspectiveResponse.status} - ${errorText}`);
     }
 
     const data: PerspectiveResponse = await perspectiveResponse.json();
@@ -260,7 +260,7 @@ export async function POST(req: NextRequest) {
     console.error('Perspective API error:', error.message || error);
     console.error('Full error:', JSON.stringify(error, null, 2));
     return NextResponse.json(
-      { error: Failed to analyze text: ${error.message || 'Unknown error'} },
+      { error: `Failed to analyze text: ${error.message || 'Unknown error'}` },
       { status: 500 }
     );
   }

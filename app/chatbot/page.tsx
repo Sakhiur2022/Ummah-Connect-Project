@@ -3,6 +3,8 @@
 
 import { Metadata } from 'next';
 import ChatContainer from '@/components/chatbot/ChatContainer';
+import Header from '@/components/ui/header';
+import { ProfileAnimatedBackground } from '@/components/background/profile-animated-background';
 
 export const metadata: Metadata = {
   title: 'Emotional Safety Chat | Ummah Connect',
@@ -11,8 +13,11 @@ export const metadata: Metadata = {
 
 export default function ChatbotPage() {
   return (
+    <>
+    <Header/>
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
       <ChatContainer />
     </main>
+    </>
   );
 }
