@@ -5,13 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import ChatList from '@/components/messenger/ChatList';
 import ChatBox from '@/components/messenger/ChatBox';
 import Header from '@/components/ui/header';
-// We don't need supabase client here anymore since we aren't searching in this file
-// import { createClient } from '@/lib/supabase/client'; 
 
-/**
- * Main page for the Messenger.
- * CLEANED VERSION: Top search bar removed.
- */
 export default function MessengerPage() {
   const { user } = useAuth();
   const [selectedChatUserId, setSelectedChatUserId] = useState<string | null>(null);
@@ -21,22 +15,22 @@ export default function MessengerPage() {
   };
 
   return (
-    // Changed h-full to h-screen to ensure it takes the full viewport height
-    <div className="flex flex-col h-screen bg-gray-900 text-white">
-     <Header/> 
+    // Changed bg-gray-900 to bg-background and text-white to text-foreground
+    <div className="flex flex-col h-screen bg-background text-foreground">
+      <Header />
       <div className="flex flex-grow overflow-hidden">
-        {/* Sidebar */}
-        <div className="w-full md:w-1/3 border-r border-gray-700 overflow-y-auto">
+        {/* Sidebar: Added border-border for theme consistency */}
+        <div className="w-full md:w-1/3 border-r border-border overflow-y-auto">
           <ChatList onSelectChat={handleSelectChat} selectedUserId={selectedChatUserId} />
         </div>
 
         {/* Chat Area */}
-        <div className="hidden md:flex md:w-2/3 flex-col">
+        <div className="hidden md:flex md:w-2/3 flex-col bg-background">
           {selectedChatUserId ? (
             <ChatBox selectedUserId={selectedChatUserId} />
           ) : (
             <div className="flex-grow flex items-center justify-center">
-              <p className="text-gray-400">Select a conversation to start chatting</p>
+              <p className="text-muted-foreground">Select a conversation to start chatting</p>
             </div>
           )}
         </div>
