@@ -12,16 +12,16 @@
 │                    PRESENTATION LAYER                           │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  Profile Header          MahramAccessModal   ShareProfile      │
+│  Profile Header          MahramAccessModal   ShareProfile       │
 │  ├─ Share Button         ├─ Lock Icon        └─ Copy Link       │
 │  └─ Friend Actions       ├─ Send Request                        │
 │                          └─ Back Button                         │
 │                                                                 │
 │  NotificationCenter                                             │
 │  ├─ Friend Requests      MahramNotification                     │
-│  ├─ Mahram Requests  ←→  ├─ Requester Info                     │
-│  └─ Approvals            ├─ Relation Dropdown                  │
-│                          └─ Approve/Reject                     │
+│  ├─ Mahram Requests  ←→  ├─ Requester Info                      │
+│  └─ Approvals            ├─ Relation Dropdown                   │
+│                          └─ Approve/Reject                      │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
                               ↕
@@ -31,18 +31,18 @@
 │                     BUSINESS LOGIC LAYER                        │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  RPC Functions (PostgreSQL):                                   │
-│  ├─ can_view_profile()              (access control)           │
-│  ├─ can_send_mahram_request()       (validation + cooldown)    │
-│  ├─ send_mahram_request()           (create request)           │
-│  ├─ approve_mahram_request()        (approve + set relation)   │
-│  ├─ reject_mahram_request()         (delete request)           │
-│  ├─ get_mahram_status()             (status check)             │
-│  └─ notify_mahram_*()               (notification creators)    │
+│  RPC Functions (PostgreSQL):                                    │
+│  ├─ can_view_profile()              (access control)            │
+│  ├─ can_send_mahram_request()       (validation + cooldown)     │
+│  ├─ send_mahram_request()           (create request)            │
+│  ├─ approve_mahram_request()        (approve + set relation)    │
+│  ├─ reject_mahram_request()         (delete request)            │
+│  ├─ get_mahram_status()             (status check)              │
+│  └─ notify_mahram_*()               (notification creators)     │
 │                                                                 │
-│  Triggers (PostgreSQL):                                        │
-│  ├─ trigger_notify_mahram_request   (on INSERT)               │
-│  └─ trigger_notify_mahram_approved  (on UPDATE)               │
+│  Triggers (PostgreSQL):                                         │
+│  ├─ trigger_notify_mahram_request   (on INSERT)                 │
+│  └─ trigger_notify_mahram_approved  (on UPDATE)                 │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
                               ↕

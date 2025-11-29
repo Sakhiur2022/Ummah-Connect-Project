@@ -8,12 +8,14 @@ CREATE POLICY "comments_insert_own" ON public."COMMENTS"
   WITH CHECK (user_id = (SELECT auth.uid()));
 
 -- Allow authenticated users to select comments based on gender matching and post ownership
--- Post owner can see all comments, otherwise must match gender
+-- Post owner can see all comments on their post
+-- Comment author can see their own comments
+-- Other users can only see comments from same gender
 CREATE POLICY "comments_select_gender_filtered" ON public."COMMENTS"
   FOR SELECT
   TO authenticated
   USING (
-    -- Post owner can see all comments
+    -- Post owner can see all comments on their own post
     EXISTS (
       SELECT 1 FROM public."POST" p
       WHERE p.post_id = "COMMENTS".post_id
@@ -23,12 +25,20 @@ CREATE POLICY "comments_select_gender_filtered" ON public."COMMENTS"
     -- Comment author can see their own comments
     user_id = auth.uid()
     OR
-    -- Users can see comments from same gender only
-    EXISTS (
-      SELECT 1 FROM public."users" u_commenter, public."users" u_viewer
-      WHERE u_commenter.id = "COMMENTS".user_id
-      AND u_viewer.id = auth.uid()
-      AND u_commenter.gender = u_viewer.gender
+    -- Non-post-owners can see comments from same gender only
+    (
+      NOT EXISTS (
+        SELECT 1 FROM public."POST" p
+        WHERE p.post_id = "COMMENTS".post_id
+        AND p.creator_id = auth.uid()
+      )
+      AND
+      EXISTS (
+        SELECT 1 FROM public."users" u_commenter, public."users" u_viewer
+        WHERE u_commenter.id = "COMMENTS".user_id
+        AND u_viewer.id = auth.uid()
+        AND u_commenter.gender = u_viewer.gender
+      )
     )
   );
 

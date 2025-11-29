@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import FriendsList from "./FriendsList";
-import MahramList from "./MahramList";
 import MahramAndFriendsCard from "./MahramAndFriendsCard";
 
 interface ProfileContentProps {

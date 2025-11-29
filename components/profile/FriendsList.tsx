@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useThemeSafe } from '@/lib/use-theme-safe'
 import { motion } from 'framer-motion'
-import { UserPlus, UserCheck, Clock, X } from 'lucide-react'
+
 
 type Friend = {
   id: string
@@ -25,6 +25,7 @@ export default function FriendsList({ userId, currentUserId }: { userId: string;
   const [friendRequestStatus, setFriendRequestStatus] = useState<FriendRequestStatus>('not_friends')
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
+  const [showAllFriends, setShowAllFriends] = useState(false)
   const supabase = createClient()
   const { theme } = useThemeSafe()
   const isOwnProfile = userId === currentUserId
@@ -32,6 +33,15 @@ export default function FriendsList({ userId, currentUserId }: { userId: string;
   // Fetch friends for the profile
   const fetchFriends = async () => {
     try {
+      // First, get the profile user's gender
+      const { data: profileUserData } = await supabase
+        .from('users')
+        .select('gender')
+        .eq('id', userId)
+        .single()
+
+      const profileUserGender = profileUserData?.gender
+
       // Get friends where user is sender
       const { data: senderData, error: senderError } = await supabase
         .from('FRIEND_REQUEST')
@@ -40,7 +50,7 @@ export default function FriendsList({ userId, currentUserId }: { userId: string;
           receiver_id,
           status,
           sender:sender_id(id, full_name, username, profile_image),
-          receiver:receiver_id(id, full_name, username, profile_image)
+          receiver:receiver_id(id, full_name, username, profile_image, gender)
         `)
         .eq('sender_id', userId)
         .eq('status', 'accepted')
@@ -52,7 +62,7 @@ export default function FriendsList({ userId, currentUserId }: { userId: string;
           sender_id,
           receiver_id,
           status,
-          sender:sender_id(id, full_name, username, profile_image),
+          sender:sender_id(id, full_name, username, profile_image, gender),
           receiver:receiver_id(id, full_name, username, profile_image)
         `)
         .eq('receiver_id', userId)
@@ -66,16 +76,20 @@ export default function FriendsList({ userId, currentUserId }: { userId: string;
       }
 
       const allData = [...(senderData || []), ...(receiverData || [])]
-      const formatted = allData.map((row: any) => {
-        const isSender = row.sender_id === userId
-        const u = isSender ? row.receiver : row.sender
-        return {
-          id: u.id,
-          full_name: u.full_name,
-          username: u.username,
-          profile_image: u.profile_image
-        }
-      })
+      const formatted = allData
+        .map((row: any) => {
+          const isSender = row.sender_id === userId
+          const u = isSender ? row.receiver : row.sender
+          return {
+            id: u.id,
+            full_name: u.full_name,
+            username: u.username,
+            profile_image: u.profile_image,
+            gender: u.gender
+          }
+        })
+        .filter((friend: any) => friend.gender === profileUserGender)
+      
       setFriends(formatted)
     } catch (err) {
       console.error('Error in fetchFriends:', err)
@@ -545,37 +559,51 @@ export default function FriendsList({ userId, currentUserId }: { userId: string;
           </h2>
           {!loading ? (
             friends.length ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {friends.map(f => (
-                  <motion.div
-                    key={f.id}
-                    whileHover={{ scale: 1.03 }}
-                    onClick={() => router.push(`/profile/${f.username}`)}
-                    className="flex flex-col items-center text-center p-3 rounded-lg bg-opacity-20 backdrop-blur-sm cursor-pointer transition"
-                    style={{
-                      backgroundColor: theme === 'light' ? 'rgba(59, 130, 246, 0.05)' : 'rgba(34, 197, 94, 0.05)',
-                      border: `1px solid ${theme === 'light' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(34, 197, 94, 0.1)'}`
-                    }}
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {(showAllFriends ? friends : friends.slice(0, 10)).map(f => (
+                    <motion.div
+                      key={f.id}
+                      whileHover={{ scale: 1.03 }}
+                      onClick={() => router.push(`/profile/${f.username}`)}
+                      className="flex flex-col items-center text-center p-3 rounded-lg bg-opacity-20 backdrop-blur-sm cursor-pointer transition"
+                      style={{
+                        backgroundColor: theme === 'light' ? 'rgba(59, 130, 246, 0.05)' : 'rgba(34, 197, 94, 0.05)',
+                        border: `1px solid ${theme === 'light' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(34, 197, 94, 0.1)'}`
+                      }}
+                    >
+                      {f.profile_image ? (
+                        <img
+                          src={f.profile_image}
+                          alt={f.full_name}
+                          className="w-12 h-12 rounded-full object-cover mb-2"
+                        />
+                      ) : (
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg mb-2 ${
+                          theme === 'light'
+                            ? 'bg-linear-to-br from-amber-100 to-yellow-100 text-amber-900'
+                            : 'bg-linear-to-br from-cyan-900 to-purple-900 text-cyan-300'
+                        }`}>
+                          {f.full_name?.charAt(0) || 'U'}
+                        </div>
+                      )}
+                      <p className={`font-medium text-sm ${headingClass}`}>{f.full_name}</p>
+                      <p className={`text-xs ${textClass}`}>@{f.username}</p>
+                    </motion.div>
+                  ))}
+                </div>
+                {friends.length > 10 && (
+                  <button
+                    onClick={() => setShowAllFriends(!showAllFriends)}
+                    className={`w-full py-2 rounded-lg font-medium transition-colors ${
+                      theme === 'light'
+                        ? 'bg-blue-100 hover:bg-blue-200 text-blue-700'
+                        : 'bg-cyan-900/30 hover:bg-cyan-900/50 text-cyan-300'
+                    }`}
                   >
-                    {f.profile_image ? (
-                      <img
-                        src={f.profile_image}
-                        alt={f.full_name}
-                        className="w-12 h-12 rounded-full object-cover mb-2"
-                      />
-                    ) : (
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg mb-2 ${
-                        theme === 'light'
-                          ? 'bg-linear-to-br from-amber-100 to-yellow-100 text-amber-900'
-                          : 'bg-linear-to-br from-cyan-900 to-purple-900 text-cyan-300'
-                      }`}>
-                        {f.full_name?.charAt(0) || 'U'}
-                      </div>
-                    )}
-                    <p className={`font-medium text-sm ${headingClass}`}>{f.full_name}</p>
-                    <p className={`text-xs ${textClass}`}>@{f.username}</p>
-                  </motion.div>
-                ))}
+                    {showAllFriends ? 'Show Less' : `Show All (${friends.length})`}
+                  </button>
+                )}
               </div>
             ) : (
               <p className={textClass}>No friends yet.</p>

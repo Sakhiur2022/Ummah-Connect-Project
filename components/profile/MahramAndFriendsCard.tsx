@@ -30,12 +30,32 @@ export default function MahramAndFriendsCard({ userId, currentUserId }: { userId
       }
 
       try {
-        // Get all mahrams (approved)
+        // Get all mahram pairs first
+        const { data: mahramPairs } = await supabase
+          .from('MAHRAM')
+          .select('user_id, related_user_id')
+          .eq('approved', true)
+
+        // Check if viewing own profile
+        const isOwnProfile = currentUserId === userId
+
+        // Check if there's a mahram relationship between current user and profile owner (bidirectional)
+        const isMahram = mahramPairs?.some(pair => 
+          (pair.user_id === currentUserId && pair.related_user_id === userId) ||
+          (pair.user_id === userId && pair.related_user_id === currentUserId)
+        )
+
+        // If not viewing own profile and current user is NOT a mahram of profile owner, don't show the card
+        if (!isOwnProfile && !isMahram) {
+          setLoading(false)
+          return
+        }
+
+        // Get all mahrams of the profile owner
         const { data: mahramData } = await supabase
           .from('MAHRAM')
           .select('user_id, related_user_id')
           .eq('approved', true)
-          .or(`user_id.eq.${userId},related_user_id.eq.${userId}`)
 
         if (!mahramData) {
           setLoading(false)
@@ -52,7 +72,7 @@ export default function MahramAndFriendsCard({ userId, currentUserId }: { userId
           }
         })
 
-        // Get all friends
+        // Get all friends of the profile owner
         const { data: friendsData } = await supabase
           .from('FRIEND_REQUEST')
           .select('sender_id, receiver_id')

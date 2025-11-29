@@ -15,7 +15,8 @@ export default function ChatbotPage() {
   return (
     <>
     <Header/>
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+    <ProfileAnimatedBackground/>
+    <main className="min-h-screen">
       <ChatContainer />
     </main>
     </>

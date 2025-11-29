@@ -193,7 +193,7 @@ export function DashboardFeed({
           }
 
           try {
-            // Fetch surah metadata to get the correct number of ayahs (already done above, using randomAyah)
+            // Fetch surah metadata to get the correct number of ayah
             const surahMetaUrl = `https://api.alquran.cloud/v1/surah/${randomSurah}`;
             const surahMetaResponse = await fetch(surahMetaUrl);
 
@@ -209,9 +209,8 @@ export function DashboardFeed({
               `Attempt ${attempts}: Fetching Surah ${randomSurah}, Ayah ${randomAyah} (max ayahs: ${maxAyahsInSurah})`
             );
 
-            // Fetch Arabic with harkat - use correct API format
+            // Fetch Arabic with harkat
             const arabicUrl = `https://api.alquran.cloud/v1/ayah/${randomSurah}:${randomAyah}?edition=quran-simple`;
-            console.log("Fetching Arabic from:", arabicUrl);
 
             const arabicResponse = await fetch(arabicUrl);
 
@@ -226,11 +225,10 @@ export function DashboardFeed({
             console.log("Arabic response:", arabicData);
 
             if (arabicData?.data) {
-              // Arabic text fetched successfully, now fetch English translation
+              //fetch English translation
               try {
                 const surahNum = arabicData.data.surah.number;
                 const englishUrl = `https://api.alquran.cloud/v1/surah/${surahNum}/en.asad`;
-                console.log("Fetching English translation from:", englishUrl);
 
                 const englishResponse = await fetch(englishUrl);
                 if (englishResponse.ok) {

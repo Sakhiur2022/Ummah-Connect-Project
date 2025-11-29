@@ -6,7 +6,25 @@ ALTER TABLE public.users
 ADD COLUMN IF NOT EXISTS gender TEXT CHECK (gender IN ('male', 'female')),
 ADD COLUMN IF NOT EXISTS allow_mahram_requests_from_strangers BOOLEAN DEFAULT TRUE;
 
--- 2. Trigger to create notification when mahram request is created
+-- 2. Create mahram rejection cooldown tracking table
+CREATE TABLE IF NOT EXISTS public."MAHRAM_REJECTION_COOLDOWN" (
+  cooldown_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  requester_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  target_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  rejected_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  cooldown_days INT DEFAULT 7,
+  cooldown_expires_at TIMESTAMPTZ NOT NULL,
+  reason TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT unique_rejection_pair UNIQUE(requester_id, target_id)
+);
+
+-- Create index for faster queries
+CREATE INDEX IF NOT EXISTS idx_mahram_cooldown_requester ON public."MAHRAM_REJECTION_COOLDOWN"(requester_id);
+CREATE INDEX IF NOT EXISTS idx_mahram_cooldown_target ON public."MAHRAM_REJECTION_COOLDOWN"(target_id);
+CREATE INDEX IF NOT EXISTS idx_mahram_cooldown_expires ON public."MAHRAM_REJECTION_COOLDOWN"(cooldown_expires_at);
+
+-- 3. Trigger to create notification when mahram request is created
 CREATE OR REPLACE FUNCTION public.notify_mahram_request()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -49,7 +67,7 @@ FOR EACH ROW
 WHEN (NEW.approved = FALSE)
 EXECUTE FUNCTION public.notify_mahram_request();
 
--- 3. Trigger to create notification when mahram is approved
+-- 4. Trigger to create notification when mahram is approved
 CREATE OR REPLACE FUNCTION public.notify_mahram_approved()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -93,22 +111,25 @@ AFTER UPDATE ON public."MAHRAM"
 FOR EACH ROW
 EXECUTE FUNCTION public.notify_mahram_approved();
 
--- 4. Function to check if user can send mahram request
+-- 5. Function to check if user can send mahram request with detailed cooldown info
 CREATE OR REPLACE FUNCTION public.can_send_mahram_request(
   p_requester_id UUID,
   p_target_id UUID
 )
 RETURNS TABLE (
   can_send BOOLEAN,
-  reason TEXT
+  reason TEXT,
+  cooldown_remaining_days FLOAT,
+  cooldown_expires_at TIMESTAMPTZ
 ) AS $$
 DECLARE
   v_requester_gender TEXT;
   v_target_gender TEXT;
   v_target_allow_requests BOOLEAN;
   v_existing_request BOOLEAN;
-  v_last_request_time TIMESTAMPTZ;
+  v_cooldown_expires_at TIMESTAMPTZ;
   v_cooldown_days INT := 7;
+  v_days_remaining FLOAT;
 BEGIN
   -- Get genders
   SELECT gender INTO v_requester_gender FROM public.users WHERE id = p_requester_id;
@@ -116,45 +137,50 @@ BEGIN
 
   -- Same gender cannot use mahram system
   IF v_requester_gender = v_target_gender THEN
-    RETURN QUERY SELECT FALSE::BOOLEAN, 'Same gender users cannot use mahram system'::TEXT;
+    RETURN QUERY SELECT FALSE::BOOLEAN, 'Same gender users cannot use mahram system'::TEXT, NULL::FLOAT, NULL::TIMESTAMPTZ;
     RETURN;
   END IF;
 
   -- Check if target allows requests from strangers
   IF v_target_allow_requests = FALSE THEN
-    RETURN QUERY SELECT FALSE::BOOLEAN, 'This user does not accept mahram requests from strangers'::TEXT;
+    RETURN QUERY SELECT FALSE::BOOLEAN, 'This user does not accept mahram requests from strangers'::TEXT, NULL::FLOAT, NULL::TIMESTAMPTZ;
     RETURN;
   END IF;
 
-  -- Check for existing request
+  -- Check for existing active request
   SELECT EXISTS(
     SELECT 1 FROM public."MAHRAM"
     WHERE user_id = p_requester_id AND related_user_id = p_target_id
   ) INTO v_existing_request;
 
   IF v_existing_request THEN
-    RETURN QUERY SELECT FALSE::BOOLEAN, 'Mahram request already exists'::TEXT;
+    RETURN QUERY SELECT FALSE::BOOLEAN, 'Mahram request already exists'::TEXT, NULL::FLOAT, NULL::TIMESTAMPTZ;
     RETURN;
   END IF;
 
-  -- Check cooldown (1 request per 7 days)
-  SELECT created_at INTO v_last_request_time
-  FROM public."MAHRAM"
-  WHERE user_id = p_requester_id AND related_user_id = p_target_id
-  ORDER BY created_at DESC
+  -- Check rejection cooldown (7 days after rejection)
+  SELECT mrc.cooldown_expires_at INTO v_cooldown_expires_at
+  FROM public."MAHRAM_REJECTION_COOLDOWN" mrc
+  WHERE mrc.requester_id = p_requester_id AND mrc.target_id = p_target_id
+  AND mrc.cooldown_expires_at > NOW()
   LIMIT 1;
 
-  IF v_last_request_time IS NOT NULL AND (NOW() - v_last_request_time) < INTERVAL '7 days' THEN
-    RETURN QUERY SELECT FALSE::BOOLEAN, 'You can only send one mahram request per 7 days'::TEXT;
+  IF v_cooldown_expires_at IS NOT NULL THEN
+    v_days_remaining := EXTRACT(DAY FROM (v_cooldown_expires_at - NOW()))
+      + (EXTRACT(HOUR FROM (v_cooldown_expires_at - NOW())) / 24.0);
+    RETURN QUERY SELECT FALSE::BOOLEAN, 
+      'Mahram request on cooldown after rejection. Please wait ' || CEIL(v_days_remaining) || ' more days before trying again.',
+      v_days_remaining,
+      v_cooldown_expires_at;
     RETURN;
   END IF;
 
   -- All checks passed
-  RETURN QUERY SELECT TRUE::BOOLEAN, 'Can send mahram request'::TEXT;
+  RETURN QUERY SELECT TRUE::BOOLEAN, 'Can send mahram request'::TEXT, NULL::FLOAT, NULL::TIMESTAMPTZ;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 5. Function to check if user can view profile
+-- 6. Function to check if user can view profile
 CREATE OR REPLACE FUNCTION public.can_view_profile(
   p_viewer_id UUID,
   p_profile_owner_id UUID
@@ -211,7 +237,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 6. Function to send mahram request
+-- 7. Function to send mahram request
 CREATE OR REPLACE FUNCTION public.send_mahram_request(
   p_requester_id UUID,
   p_target_id UUID
@@ -225,9 +251,12 @@ DECLARE
   v_new_mahram_id UUID;
   v_can_send BOOLEAN;
   v_reason TEXT;
+  v_cooldown_remaining_days FLOAT;
+  v_cooldown_expires_at TIMESTAMPTZ;
 BEGIN
   -- Check if user can send request
-  SELECT can_send, reason INTO v_can_send, v_reason
+  SELECT can_send, reason, cooldown_remaining_days, cooldown_expires_at 
+  INTO v_can_send, v_reason, v_cooldown_remaining_days, v_cooldown_expires_at
   FROM public.can_send_mahram_request(p_requester_id, p_target_id);
 
   IF NOT v_can_send THEN
@@ -244,7 +273,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 7. Function to approve mahram request
+-- 8. Function to approve mahram request
 CREATE OR REPLACE FUNCTION public.approve_mahram_request(
   p_mahram_id UUID,
   p_relation_id SMALLINT
@@ -273,7 +302,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 8. Function to reject/delete mahram request
+-- 9. Function to reject/delete mahram request with cooldown tracking
 CREATE OR REPLACE FUNCTION public.reject_mahram_request(
   p_mahram_id UUID
 )
@@ -281,18 +310,104 @@ RETURNS TABLE (
   success BOOLEAN,
   message TEXT
 ) AS $$
+DECLARE
+  v_mahram RECORD;
 BEGIN
+  -- Get mahram record before deletion
+  SELECT * INTO v_mahram FROM public."MAHRAM" WHERE mahram_id = p_mahram_id;
+
+  IF v_mahram IS NULL THEN
+    RETURN QUERY SELECT FALSE::BOOLEAN, 'Mahram request not found'::TEXT;
+    RETURN;
+  END IF;
+
+  -- Create cooldown record for rejection (7 days)
+  INSERT INTO public."MAHRAM_REJECTION_COOLDOWN" (
+    requester_id,
+    target_id,
+    cooldown_days,
+    cooldown_expires_at,
+    reason
+  ) VALUES (
+    v_mahram.user_id,
+    v_mahram.related_user_id,
+    7,
+    NOW() + INTERVAL '7 days',
+    'Mahram request rejected by recipient'
+  )
+  ON CONFLICT (requester_id, target_id) DO UPDATE SET
+    cooldown_expires_at = NOW() + INTERVAL '7 days',
+    rejected_at = NOW(),
+    reason = 'Mahram request rejected by recipient';
+
+  -- Delete the mahram request
   DELETE FROM public."MAHRAM" WHERE mahram_id = p_mahram_id;
 
   IF FOUND THEN
-    RETURN QUERY SELECT TRUE::BOOLEAN, 'Mahram request rejected'::TEXT;
+    RETURN QUERY SELECT TRUE::BOOLEAN, 'Mahram request rejected. Please try again after 7 days.'::TEXT;
   ELSE
     RETURN QUERY SELECT FALSE::BOOLEAN, 'Mahram request not found'::TEXT;
   END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 9. Function to get mahram status between two users
+-- 10. Function to get mahram status between two users with cooldown info
+CREATE OR REPLACE FUNCTION public.get_mahram_status_with_cooldown(
+  p_user_a UUID,
+  p_user_b UUID
+)
+RETURNS TABLE (
+  status TEXT,
+  approved BOOLEAN,
+  relation_type TEXT,
+  cooldown_active BOOLEAN,
+  cooldown_expires_at TIMESTAMPTZ,
+  days_until_available FLOAT
+) AS $$
+DECLARE
+  v_mahram RECORD;
+  v_cooldown RECORD;
+BEGIN
+  -- Check for active mahram request
+  SELECT * INTO v_mahram FROM public."MAHRAM"
+  WHERE (user_id = p_user_a AND related_user_id = p_user_b)
+     OR (user_id = p_user_b AND related_user_id = p_user_a);
+
+  -- Check for cooldown
+  SELECT * INTO v_cooldown FROM public."MAHRAM_REJECTION_COOLDOWN"
+  WHERE (requester_id = p_user_a AND target_id = p_user_b)
+  AND cooldown_expires_at > NOW();
+
+  IF v_mahram IS NULL AND v_cooldown IS NULL THEN
+    RETURN QUERY SELECT 'none'::TEXT, FALSE::BOOLEAN, NULL::TEXT, FALSE::BOOLEAN, NULL::TIMESTAMPTZ, NULL::FLOAT;
+    RETURN;
+  END IF;
+
+  IF v_cooldown IS NOT NULL AND (v_mahram IS NULL OR v_mahram.approved = FALSE) THEN
+    RETURN QUERY SELECT 'cooldown'::TEXT, FALSE::BOOLEAN, NULL::TEXT, TRUE::BOOLEAN, 
+      v_cooldown.cooldown_expires_at,
+      EXTRACT(DAY FROM (v_cooldown.cooldown_expires_at - NOW()))
+      + (EXTRACT(HOUR FROM (v_cooldown.cooldown_expires_at - NOW())) / 24.0);
+    RETURN;
+  END IF;
+
+  IF v_mahram IS NOT NULL AND v_mahram.approved = FALSE THEN
+    RETURN QUERY SELECT 'pending'::TEXT, FALSE::BOOLEAN, NULL::TEXT, FALSE::BOOLEAN, NULL::TIMESTAMPTZ, NULL::FLOAT;
+    RETURN;
+  END IF;
+
+  IF v_mahram IS NOT NULL AND v_mahram.approved = TRUE THEN
+    RETURN QUERY SELECT 'approved'::TEXT, TRUE::BOOLEAN, 
+      (SELECT name FROM public."MAHRAM_RELATION_TYPE" WHERE relation_id = v_mahram.relation_id)::TEXT,
+      FALSE::BOOLEAN, NULL::TIMESTAMPTZ, NULL::FLOAT;
+    RETURN;
+  END IF;
+
+  RETURN QUERY SELECT 'unknown'::TEXT, FALSE::BOOLEAN, NULL::TEXT, FALSE::BOOLEAN, NULL::TIMESTAMPTZ, NULL::FLOAT;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 11. Function to get mahram status between two users
 CREATE OR REPLACE FUNCTION public.get_mahram_status(
   p_user_a UUID,
   p_user_b UUID
@@ -321,5 +436,47 @@ BEGIN
 
   RETURN QUERY SELECT 'approved'::TEXT, TRUE::BOOLEAN, 
     (SELECT name FROM public."MAHRAM_RELATION_TYPE" WHERE relation_id = v_mahram.relation_id)::TEXT;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 12. Function to get remaining cooldown time for a specific pair
+CREATE OR REPLACE FUNCTION public.get_mahram_cooldown_info(
+  p_requester_id UUID,
+  p_target_id UUID
+)
+RETURNS TABLE (
+  has_cooldown BOOLEAN,
+  expires_at TIMESTAMPTZ,
+  days_remaining FLOAT,
+  hours_remaining FLOAT,
+  formatted_time TEXT
+) AS $$
+DECLARE
+  v_cooldown_expires_at TIMESTAMPTZ;
+  v_days FLOAT;
+  v_hours FLOAT;
+BEGIN
+  SELECT mrc.cooldown_expires_at INTO v_cooldown_expires_at 
+  FROM public."MAHRAM_REJECTION_COOLDOWN" mrc
+  WHERE mrc.requester_id = p_requester_id AND mrc.target_id = p_target_id
+  AND mrc.cooldown_expires_at > NOW();
+
+  IF v_cooldown_expires_at IS NULL THEN
+    RETURN QUERY SELECT FALSE::BOOLEAN, NULL::TIMESTAMPTZ, NULL::FLOAT, NULL::FLOAT, NULL::TEXT;
+    RETURN;
+  END IF;
+
+  v_days := EXTRACT(DAY FROM (v_cooldown_expires_at - NOW()));
+  v_hours := EXTRACT(HOUR FROM (v_cooldown_expires_at - NOW()))
+           + (EXTRACT(MINUTE FROM (v_cooldown_expires_at - NOW())) / 60.0);
+
+  RETURN QUERY SELECT TRUE::BOOLEAN, 
+    v_cooldown_expires_at,
+    v_days + (v_hours / 24.0),
+    v_hours,
+    CASE 
+      WHEN v_days > 0 THEN v_days::TEXT || ' days ' || FLOOR(v_hours)::TEXT || ' hours'
+      ELSE FLOOR(v_hours)::TEXT || ' hours ' || ROUND(((v_hours * 60)::INTEGER % 60))::TEXT || ' minutes'
+    END;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

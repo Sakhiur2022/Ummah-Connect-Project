@@ -6,7 +6,6 @@ import { useThemeSafe } from "@/lib/use-theme-safe";
 import { Heart, ImageIcon, X, Send, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PostCard } from "@/components/post/post-card";
-import FriendsList from "@/components/profile/FriendsList";
 import MahramList from "@/components/profile/MahramList";
 
 interface ProfileFeedProps {

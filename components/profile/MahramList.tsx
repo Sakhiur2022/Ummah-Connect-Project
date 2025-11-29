@@ -88,6 +88,8 @@ export default function MahramList({ userId, currentUserId }: { userId: string; 
       const allMahrams: Mahram[] = []
 
       // Process requester mahrams (user_id is the profile owner)
+      // The profile owner sent the request, receiver selected what sender is to them
+      // So we show the reverse - what the receiver is to the profile owner
       if (requesterData) {
         requesterData.forEach((row: any) => {
           if (row.related_user) {
@@ -96,13 +98,15 @@ export default function MahramList({ userId, currentUserId }: { userId: string; 
               full_name: row.related_user.full_name,
               username: row.related_user.username,
               profile_image: row.related_user.profile_image,
-              relation_type: getRelationType(row.relation_id, false),
+              relation_type: getRelationType(row.relation_id, true),
             })
           }
         })
       }
 
       // Process target mahrams (related_user_id is the profile owner)
+      // The receiver (profile owner) approved and selected what the sender is to them
+      // So we show the direct relation (what was selected)
       if (targetData) {
         targetData.forEach((row: any) => {
           if (row.user) {
@@ -111,7 +115,7 @@ export default function MahramList({ userId, currentUserId }: { userId: string; 
               full_name: row.user.full_name,
               username: row.user.username,
               profile_image: row.user.profile_image,
-              relation_type: getRelationType(row.relation_id, true),
+              relation_type: getRelationType(row.relation_id, false),
             })
           }
         })
@@ -131,18 +135,21 @@ export default function MahramList({ userId, currentUserId }: { userId: string; 
   }
 
   const getRelationType = (relationId: number | null, isReverse: boolean) => {
+    
+    
     const relations: Record<number, { direct: string; reverse: string }> = {
-      1: { direct: 'Mother', reverse: 'Son' },
-      2: { direct: 'Father', reverse: 'Daughter' },
-      3: { direct: 'Sister', reverse: 'Brother' },
-      4: { direct: 'Brother', reverse: 'Sister' },
-      5: { direct: 'Grandmother', reverse: 'Grandson' },
-      6: { direct: 'Grandfather', reverse: 'Granddaughter' },
-      7: { direct: 'Aunt', reverse: 'Nephew' },
-      8: { direct: 'Uncle', reverse: 'Niece' },
-      9: { direct: 'Niece', reverse: 'Uncle' },
-      10: { direct: 'Nephew', reverse: 'Aunt' },
-      11: { direct: 'Spouse', reverse: 'Spouse' },
+      1: { direct: 'Father', reverse: 'Daughter' },     
+      2: { direct: 'Mother', reverse: 'Son' },         
+      3: { direct: 'Brother', reverse: 'Sister' },   
+      4: { direct: 'Sister', reverse: 'Brother' },    
+      5: { direct: 'Son', reverse: 'Mother' },          
+      6: { direct: 'Daughter', reverse: 'Father' },   
+      7: { direct: 'Uncle', reverse: 'Niece' },         
+      8: { direct: 'Aunt', reverse: 'Nephew' },        
+      9: { direct: 'Grandparent', reverse: 'Grandchild' },
+      10: { direct: 'Nephew', reverse: 'Aunt' },       
+      11: { direct: 'Niece', reverse: 'Uncle' },       
+      12: { direct: 'Spouse', reverse: 'Spouse' },    
     }
     const relation = relations[relationId || 0]
     if (!relation) return 'Mahram'

@@ -38,6 +38,8 @@ export function CommentSection({
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userProfileImage, setUserProfileImage] = useState<string | null>(null);
+  const [userFullName, setUserFullName] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
@@ -81,6 +83,16 @@ export function CommentSection({
         } = await supabase.auth.getUser();
         if (user) {
           setUserId(user.id);
+          // Fetch current user's profile image and name
+          const { data: userData } = await supabase
+            .from("users")
+            .select("profile_image, full_name")
+            .eq("id", user.id)
+            .single();
+          if (userData) {
+            setUserProfileImage(userData.profile_image);
+            setUserFullName(userData.full_name);
+          }
         }
 
         // Fetch comments
@@ -343,11 +355,20 @@ export function CommentSection({
         <form onSubmit={handleCommentSubmit} className="space-y-3">
           <div className="flex gap-3">
             <div
-              className={`w-8 h-8 rounded-full shrink-0 ${avatarBgClass} flex items-center justify-center`}
+              className={`w-8 h-8 rounded-full shrink-0 ${avatarBgClass} flex items-center justify-center overflow-hidden`}
             >
-              <span className={`text-xs font-bold ${avatarTextClass}`}>
-                You
-              </span>
+              {userProfileImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={userProfileImage || "/placeholder.svg"}
+                  alt="Your profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className={`text-xs font-bold ${avatarTextClass}`}>
+                  {userFullName?.charAt(0).toUpperCase() || "Y"}
+                </span>
+              )}
             </div>
             <textarea
               value={newComment}

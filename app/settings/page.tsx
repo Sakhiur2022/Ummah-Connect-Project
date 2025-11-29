@@ -7,32 +7,56 @@ import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/ui/header';
 import NotificationToggle from '@/components/settings/NotificationToggle';
 import { Camera, Save, Loader2 } from 'lucide-react'; // Added icons for better UI
+import { ProfileAnimatedBackground } from '@/components/background/profile-animated-background';
+import { useThemeSafe } from '@/lib/use-theme-safe';
 
 // Reusable Input Component for consistency
-const SettingsInput = ({ label, ...props }: any) => (
-  <div className="space-y-2">
-    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground/90">
-      {label}
-    </label>
-    <input
-      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200"
-      {...props}
-    />
-  </div>
-);
+const SettingsInput = ({ label, ...props }: any) => {
+  const { theme } = useThemeSafe();
+  return (
+    <div className="space-y-2">
+      <label className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${
+        theme === 'light' ? 'text-amber-950' : 'text-cyan-100'
+      }`}>
+        {label}
+      </label>
+      <input
+        className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 ${
+          theme === 'light'
+            ? 'border-amber-300 bg-white text-amber-950 placeholder-amber-600 focus-visible:ring-amber-500/60'
+            : 'border-slate-700/80 bg-slate-800/40 text-cyan-50 placeholder-slate-400 focus-visible:ring-cyan-500/50'
+        }`}
+        {...props}
+      />
+    </div>
+  );
+};
 
 // Reusable Card Component
-const SettingsCard = ({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) => (
-  <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm">
-    <div className="flex flex-col space-y-1.5 p-6 border-b border-border/40">
-      <h3 className="text-2xl font-semibold leading-none tracking-tight">{title}</h3>
-      {description && <p className="text-sm text-muted-foreground">{description}</p>}
+const SettingsCard = ({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) => {
+  const { theme } = useThemeSafe();
+  return (
+    <div className={`rounded-xl backdrop-blur-md p-6 border ${
+      theme === 'light'
+        ? 'border-amber-300 bg-white/70 shadow-lg shadow-amber-200/40'
+        : 'border-slate-700/60 bg-slate-900/40 shadow-lg shadow-black/50'
+    }`}>
+      <div className="flex flex-col space-y-1.5 pb-6 border-b" style={{
+        borderColor: theme === 'light' ? 'rgba(217, 119, 6, 0.2)' : 'rgba(51, 65, 85, 0.4)'
+      }}>
+        <h3 className={`text-2xl font-semibold leading-none tracking-tight ${
+          theme === 'light' ? 'text-amber-950' : 'text-slate-100'
+        }`}>{title}</h3>
+        {description && <p className={`text-sm ${
+          theme === 'light' ? 'text-amber-700' : 'text-slate-400'
+        }`}>{description}</p>}
+      </div>
+      <div className="p-0 pt-6">
+        {children}
+      </div>
     </div>
-    <div className="p-6 pt-6">
-      {children}
-    </div>
-  </div>
-);
+  );
+};
 
 // Reusable Button
 const Button = ({ children, loading, ...props }: any) => (
@@ -48,6 +72,7 @@ const Button = ({ children, loading, ...props }: any) => (
 
 export default function SettingsPage() {
   const { user } = useAuth();
+  const { theme } = useThemeSafe();
   
   // --- STATES ---
   const profileInputRef = useRef<HTMLInputElement>(null);
@@ -130,17 +155,12 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+    <div className="min-h-screen text-foreground transition-colors duration-300">
       <Header />
-      
+      <ProfileAnimatedBackground/>
       <main className="container max-w-4xl mx-auto p-4 md:p-8 space-y-8 pt-24">
         
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground">
-            Manage your account settings and preferences.
-          </p>
-        </div>
+        <SettingsCard title="Settings" description="Manage your account settings and preferences." children={<div />} />
 
         {/* Feedback Messages */}
         {message && (
@@ -181,8 +201,12 @@ export default function SettingsPage() {
                 </div>
                 
                 <div className="space-y-2 text-center sm:text-left">
-                   <h4 className="font-medium">Profile Photo</h4>
-                   <p className="text-sm text-muted-foreground max-w-[200px]">
+                   <h4 className={`font-medium ${
+                     theme === 'light' ? 'text-amber-950' : 'text-slate-100'
+                   }`}>Profile Photo</h4>
+                   <p className={`text-sm max-w-[200px] ${
+                     theme === 'light' ? 'text-amber-700' : 'text-slate-400'
+                   }`}>
                      Supports JPG, PNG or GIF. 
                    </p>
                 </div>

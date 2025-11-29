@@ -31,6 +31,7 @@ export function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobileFullScreen, setIsMobileFullScreen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const supabase = createClient();
   const { theme } = useThemeSafe();
 
@@ -48,6 +49,11 @@ export function NotificationCenter() {
           table: "NOTIFICATION",
         },
         async (payload) => {
+          // Check if notifications are enabled before processing
+          if (!notificationsEnabled) {
+            return;
+          }
+
           const newNotif = payload.new as Notification;
           
           // Fetch actor data for the new notification
@@ -75,7 +81,7 @@ export function NotificationCenter() {
     return () => {
       channel.unsubscribe();
     };
-  }, []);
+  }, [notificationsEnabled]);
 
   const fetchNotifications = async () => {
     try {
@@ -84,6 +90,26 @@ export function NotificationCenter() {
       } = await supabase.auth.getUser();
 
       if (!user) return;
+
+      // Check if notifications are enabled for this user
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("notifications_enabled")
+        .eq("id", user.id)
+        .single();
+
+      if (userError) throw userError;
+
+      // Set the notifications_enabled state
+      const isEnabled = userData?.notifications_enabled !== false;
+      setNotificationsEnabled(isEnabled);
+
+      // If notifications are disabled, don't fetch any
+      if (!isEnabled) {
+        setNotifications([]);
+        setUnreadCount(0);
+        return;
+      }
 
       const { data: notificationsData, error: notifError } = await supabase
         .from("NOTIFICATION")
@@ -265,6 +291,12 @@ export function NotificationCenter() {
         return (
           <>
             {actorLink} sent you a friend request
+          </>
+        );
+      case "friend_request_accepted":
+        return (
+          <>
+            {actorLink} accepted your friend request
           </>
         );
       case "mahram_request":

@@ -221,6 +221,26 @@ AFTER INSERT ON public."FRIEND_REQUEST"
 FOR EACH ROW
 EXECUTE FUNCTION public.bcnf_friend_request_insert();
 
+-- Friend request accept: notify sender
+CREATE OR REPLACE FUNCTION public.bcnf_friend_request_accept()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Only notify if status changed to 'accepted'
+  IF NEW.status = 'accepted' AND (OLD.status IS NULL OR OLD.status != 'accepted') THEN
+    INSERT INTO public."NOTIFICATION" (recipient_id, actor_id, verb, object_type, object_id, created_at)
+    VALUES (NEW.sender_id, NEW.receiver_id, 'friend_request_accepted', 'user', NEW.receiver_id, now())
+    ON CONFLICT DO NOTHING;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_bcnf_friend_request_accept ON public."FRIEND_REQUEST";
+CREATE TRIGGER trg_bcnf_friend_request_accept
+AFTER UPDATE ON public."FRIEND_REQUEST"
+FOR EACH ROW
+EXECUTE FUNCTION public.bcnf_friend_request_accept();
+
 
 
 -- Create notification count functions

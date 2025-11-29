@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Loader, Check, X } from "lucide-react";
@@ -14,23 +14,23 @@ interface MahramNotificationProps {
   onUpdate?: () => void;
 }
 
-const relationTypes = [
-  { id: 1, label: "Father" },
-  { id: 2, label: "Mother" },
-  { id: 3, label: "Brother" },
-  { id: 4, label: "Sister" },
-  { id: 5, label: "Son" },
-  { id: 6, label: "Daughter" },
-  { id: 7, label: "Grandfather" },
-  { id: 8, label: "Grandmother" },
-  { id: 9, label: "Grandson" },
-  { id: 10, label: "Granddaughter" },
-  { id: 11, label: "Uncle" },
-  { id: 12, label: "Aunt" },
-  { id: 13, label: "Nephew" },
-  { id: 14, label: "Niece" },
-  { id: 15, label: "Husband" },
-  { id: 16, label: "Wife" },
+// Matches MAHRAM_RELATION_TYPE table:
+// relation_id: 1=father, 2=mother, 3=brother, 4=sister, 5=son, 6=daughter,
+//              7=uncle, 8=aunt, 9=grandparent, 10=nephew, 11=niece, 12=spouse
+// gender_restriction: 'male' = shown to males, 'female' = shown to females, 'both' = shown to all
+const allRelationTypes = [
+  { id: 1, label: "Father", genderRestriction: "female" },      // Father is mahram for females
+  { id: 2, label: "Mother", genderRestriction: "male" },        // Mother is mahram for males
+  { id: 3, label: "Brother", genderRestriction: "female" },     // Brother is mahram for females
+  { id: 4, label: "Sister", genderRestriction: "male" },        // Sister is mahram for males
+  { id: 5, label: "Son", genderRestriction: "female" },         // Son is mahram for females
+  { id: 6, label: "Daughter", genderRestriction: "male" },      // Daughter is mahram for males
+  { id: 7, label: "Uncle", genderRestriction: "female" },       // Uncle is mahram for females
+  { id: 8, label: "Aunt", genderRestriction: "male" },          // Aunt is mahram for males
+  { id: 9, label: "Grandparent", genderRestriction: "both" },   // Applies to both
+  { id: 10, label: "Nephew", genderRestriction: "female" },     // Nephew is mahram for females
+  { id: 11, label: "Niece", genderRestriction: "male" },        // Niece is mahram for males
+  { id: 12, label: "Spouse", genderRestriction: "both" },       // Mutual mahram relationship
 ];
 
 export default function MahramNotification({
@@ -44,8 +44,42 @@ export default function MahramNotification({
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRelation, setSelectedRelation] = useState<number | null>(null);
   const [showRelationDropdown, setShowRelationDropdown] = useState(false);
+  const [userGender, setUserGender] = useState<string | null>(null);
+  const [relationTypes, setRelationTypes] = useState(allRelationTypes);
   const supabase = createClient();
   const router = useRouter();
+
+  // Fetch current user's gender to filter relation types
+  useEffect(() => {
+    const fetchUserGender = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: userData } = await supabase
+          .from("users")
+          .select("gender")
+          .eq("id", user.id)
+          .single();
+
+        if (userData?.gender) {
+          setUserGender(userData.gender.toLowerCase());
+          
+          // Filter relation types based on user's gender
+          // If user is female, show relations with genderRestriction 'female' or 'both'
+          // If user is male, show relations with genderRestriction 'male' or 'both'
+          const filteredRelations = allRelationTypes.filter(
+            (rel) => rel.genderRestriction === "both" || rel.genderRestriction === userData.gender.toLowerCase()
+          );
+          setRelationTypes(filteredRelations);
+        }
+      } catch (error) {
+        console.error("Error fetching user gender:", error);
+      }
+    };
+
+    fetchUserGender();
+  }, [supabase]);
 
   const handleApprove = async () => {
     if (!selectedRelation) {
