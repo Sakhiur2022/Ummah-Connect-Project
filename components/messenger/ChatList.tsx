@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useThemeSafe } from '@/lib/use-theme-safe';
 
 const supabase = createClient();
 
@@ -11,7 +10,7 @@ type Conversation = {
   user_id: string;
   last_message_content: string;
   last_message_at: string;
-  last_message_sender_id: string; // Add sender info
+  last_message_sender_id: string;
   profile_full_name: string;
   profile_username: string;
   profile_image: string;
@@ -30,7 +29,6 @@ type ChatListProps = {
 };
 
 export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps) {
-  const { theme } = useThemeSafe();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -39,6 +37,7 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
   const [searchResults, setSearchResults] = useState<UserResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  // Tracks IDs of users who sent a message while their chat wasn't open
   const [unreadConversations, setUnreadConversations] = useState<string[]>([]);
 
   // Fetch initial conversations
@@ -86,7 +85,7 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
         }
       });
 
-      // Mark as unread if not selected and from other user
+      // If the message is from someone else and we aren't looking at their chat, mark as unread
       if (otherUserId !== selectedUserId && newMsg.sender_id !== user.id) {
         setUnreadConversations((prev) => [...new Set([...prev, otherUserId])]);
       }
@@ -94,7 +93,6 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
     [user, selectedUserId]
   );
 
-  // Real-time listener
   useEffect(() => {
     if (!user) return;
 
@@ -144,23 +142,23 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
     setUnreadConversations((prev) => prev.filter((id) => id !== userId));
   };
 
-  if (loading) return <div className={`p-4 ${theme === 'light' ? 'text-amber-900' : 'text-slate-400'}`}>Loading conversations...</div>;
+  if (loading) return <div className="p-4 text-muted-foreground">Loading conversations...</div>;
 
   return (
-    <div className="flex flex-col h-full">
-      <div className={`p-4 ${theme === 'light' ? 'border-amber-300 bg-white/50' : 'border-slate-700 bg-slate-900/50'} border-b`}>
-        <h2 className={`text-xl font-bold mb-3 ${theme === 'light' ? 'text-amber-950' : 'text-cyan-100'}`}>Messages</h2>
+    <div className="flex flex-col h-full bg-background">
+      <div className="p-4 border-b border-border">
+        <h2 className="text-xl font-bold mb-3 text-foreground">Messages</h2>
         <div className="flex space-x-2">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search for users..."
-            className={`flex-1 ${theme === 'light' ? 'bg-white border-amber-200 text-amber-950 placeholder-amber-400' : 'bg-slate-800 border-slate-600 text-white placeholder-slate-500'} border rounded-lg p-2`}
+            className="flex-1 bg-muted/50 border border-input text-foreground placeholder-muted-foreground rounded-lg p-2 focus:ring-2 focus:ring-ring focus:outline-none"
           />
           <button
             onClick={handleSearch}
-            className={`p-2 ${theme === 'light' ? 'bg-amber-600 hover:bg-amber-500' : 'bg-cyan-600 hover:bg-cyan-500'} text-white rounded-lg`}
+            className="p-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors"
           >
             Search
           </button>
@@ -171,25 +169,25 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
         {isSearching ? (
           <div>
             {searchResults.length === 0 ? (
-              <p className={`p-4 ${theme === 'light' ? 'text-amber-900' : 'text-slate-400'}`}>No users found.</p>
+              <p className="p-4 text-muted-foreground">No users found.</p>
             ) : (
               searchResults.map((userResult) => (
                 <div
                   key={userResult.id}
                   onClick={() => handleSelectUserFromSearch(userResult.id)}
-                  className={`flex items-center p-3 space-x-3 cursor-pointer ${theme === 'light' ? 'hover:bg-amber-100' : 'hover:bg-slate-700'}`}
+                  className="flex items-center p-3 space-x-3 cursor-pointer hover:bg-accent/50 transition-colors border-b border-border/40"
                 >
                   <img
                     src={userResult.profile_image || '/images/default-avatar.png'}
                     alt={userResult.full_name}
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="w-12 h-12 rounded-full object-cover border border-border"
                     onError={(e) =>
                       (e.currentTarget.src = 'https://placehold.co/48x48/333/FFF?text=E')
                     }
                   />
                   <div className="flex-1 min-w-0">
-                    <p className={`font-semibold truncate ${theme === 'light' ? 'text-amber-950' : 'text-white'}`}>{userResult.full_name}</p>
-                    <p className={`text-sm truncate ${theme === 'light' ? 'text-amber-900/60' : 'text-slate-400'}`}>@{userResult.username}</p>
+                    <p className="font-semibold truncate text-foreground">{userResult.full_name}</p>
+                    <p className="text-sm truncate text-muted-foreground">@{userResult.username}</p>
                   </div>
                 </div>
               ))
@@ -198,46 +196,61 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
         ) : (
           <div>
             {conversations.length === 0 ? (
-              <p className={`p-4 ${theme === 'light' ? 'text-amber-900' : 'text-slate-400'}`}>No conversations yet.</p>
+              <p className="p-4 text-muted-foreground">No conversations yet.</p>
             ) : (
-              conversations.map((convo) => (
-                <div
-                  key={convo.user_id}
-                  onClick={() => handleSelectConversation(convo.user_id)}
-                  className={`flex items-center p-3 space-x-3 cursor-pointer ${theme === 'light' ? 'hover:bg-amber-100' : 'hover:bg-slate-700'} ${
-                    selectedUserId === convo.user_id ? (theme === 'light' ? 'bg-amber-200' : 'bg-slate-700/50') : ''
-                  }`}
-                >
-                  <img
-                    src={convo.profile_image || '/images/default-avatar.png'}
-                    alt={convo.profile_full_name}
-                    className="w-12 h-12 rounded-full object-cover"
-                    onError={(e) =>
-                      (e.currentTarget.src = 'https://placehold.co/48x48/333/FFF?text=E')
-                    }
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className={`truncate ${
-                        unreadConversations.includes(convo.user_id) ? 'font-bold' : 'font-semibold'
-                      } ${theme === 'light' ? 'text-amber-950' : 'text-white'}`}
-                    >
-                      {convo.profile_full_name}
-                    </p>
-                    <p className={`text-sm truncate ${theme === 'light' ? 'text-amber-900/60' : 'text-slate-400'}`}>
-                      {convo.last_message_sender_id === user?.id
-                        ? `You: ${convo.last_message_content}`
-                        : convo.last_message_content}
-                    </p>
+              conversations.map((convo) => {
+                const isUnread = unreadConversations.includes(convo.user_id);
+                
+                return (
+                  <div
+                    key={convo.user_id}
+                    onClick={() => handleSelectConversation(convo.user_id)}
+                    // Added 'group' to enable hover effects on children elements
+                    className={`flex items-center p-3 space-x-3 cursor-pointer border-b border-border/40 transition-all group ${
+                      selectedUserId === convo.user_id 
+                        ? 'bg-accent border-l-4 border-l-primary' 
+                        : 'hover:bg-accent/50 border-l-4 border-l-transparent'
+                    }`}
+                  >
+                    <img
+                      src={convo.profile_image || '/images/default-avatar.png'}
+                      alt={convo.profile_full_name}
+                      className="w-12 h-12 rounded-full object-cover border border-border"
+                      onError={(e) =>
+                        (e.currentTarget.src = 'https://placehold.co/48x48/333/FFF?text=E')
+                      }
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`truncate text-foreground ${
+                          isUnread ? 'font-black' : 'font-semibold'
+                        }`}
+                      >
+                        {convo.profile_full_name}
+                      </p>
+                      {/* Added 'group-hover:text-foreground' to ensure visibility on hover */}
+                      <p 
+                        className={`text-sm truncate transition-colors ${
+                          isUnread 
+                            ? 'font-bold text-foreground' 
+                            : 'text-muted-foreground group-hover:text-foreground'
+                        }`}
+                      >
+                        {convo.last_message_sender_id === user?.id
+                          ? `You: ${convo.last_message_content}`
+                          : convo.last_message_content}
+                      </p>
+                    </div>
+                    {/* Added 'group-hover:text-foreground/70' for timestamp visibility */}
+                    <span className="text-xs text-muted-foreground group-hover:text-foreground/70 transition-colors">
+                      {new Date(convo.last_message_at).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
                   </div>
-                  <span className={`text-xs ${theme === 'light' ? 'text-amber-700' : 'text-slate-500'}`}>
-                    {new Date(convo.last_message_at).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </span>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         )}
