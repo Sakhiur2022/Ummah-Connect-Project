@@ -134,21 +134,21 @@ export default function ChatBox({ selectedUserId }: ChatBoxProps) {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="p-4 border-b border-gray-700 flex items-center space-x-3">
+      <div className="p-4 border-b border-border flex items-center space-x-3 bg-card/30 backdrop-blur-sm">
         {chatUser?.profile_image ? (
           <img
             src={chatUser.profile_image}
             alt={chatUser.full_name}
-            className="w-10 h-10 rounded-full object-cover"
+            className="w-10 h-10 rounded-full object-cover border border-border"
           />
         ) : (
-          <div className="w-10 h-10 rounded-full bg-linear-to-br from-amber-100 to-yellow-100 text-amber-900 flex items-center justify-center font-bold text-sm">
+          <div className="w-10 h-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center font-bold text-sm">
             {chatUser?.full_name?.charAt(0) || 'U'}
           </div>
         )}
-        <h3 className="font-bold">{chatUser?.full_name || 'Unknown User'}</h3>
+        <h3 className="font-bold text-foreground">{chatUser?.full_name || 'Unknown User'}</h3>
       </div>
 
       {/* Messages */}
@@ -159,12 +159,14 @@ export default function ChatBox({ selectedUserId }: ChatBoxProps) {
             className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`p-3 rounded-lg max-w-xs lg:max-w-md ${
-                msg.sender_id === user?.id ? 'bg-blue-600' : 'bg-gray-700'
+              className={`p-3 rounded-2xl max-w-xs lg:max-w-md shadow-sm ${
+                msg.sender_id === user?.id 
+                  ? 'bg-primary text-primary-foreground rounded-tr-none' 
+                  : 'bg-muted text-foreground rounded-tl-none'
               }`}
             >
               <p>{msg.content}</p>
-              <span className="text-xs text-gray-400 block text-right mt-1">
+              <span className={`text-xs block text-right mt-1 opacity-70`}>
                 {new Date(msg.sent_at).toLocaleTimeString([], {
                   hour: '2-digit',
                   minute: '2-digit',
@@ -177,18 +179,18 @@ export default function ChatBox({ selectedUserId }: ChatBoxProps) {
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4 border-t border-border bg-card/30">
         <form onSubmit={handleSendMessage} className="flex space-x-3">
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            className="flex-1 bg-gray-700 border border-gray-600 rounded-lg p-3 text-white focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 bg-input/10 border border-input rounded-lg p-3 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:border-transparent outline-none transition-all"
             placeholder="Type a message..."
           />
           <button
             type="submit"
-            className="p-3 bg-blue-600 rounded-lg hover:bg-blue-500 transition-colors"
+            className="p-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
           >
             <Send className="w-5 h-5" />
           </button>
