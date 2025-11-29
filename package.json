@@ -1,5 +1,5 @@
 {
-  "name": "my-v0-project",
+  "name": "ummah-connect",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -57,6 +57,7 @@
     "react-chartjs-2": "^5.3.1",
     "react-day-picker": "9.8.0",
     "react-dom": "^18.3.1",
+    "react-easy-crop": "^5.5.6",
     "react-hook-form": "^7.60.0",
     "react-resizable-panels": "^2.1.7",
     "recharts": "2.15.4",
