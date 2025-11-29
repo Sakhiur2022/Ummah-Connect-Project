@@ -684,7 +684,7 @@ export function DashboardFeed({
                   theme === "light" ? "text-amber-950" : "text-slate-100"
                 }`}
                 style={{
-                  fontFamily: "'Noto Kufi Arabic', sans-serif",
+                  fontFamily: "QuranFont, sans-serif",
                   fontSize: "1.75rem",
                   lineHeight: "2.5",
                 }}

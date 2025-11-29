@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import url("https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap");
+
+@font-face {
+  font-family: 'QuranFont';
+  src: url('https://cdn.jsdelivr.net/gh/mirfan899/quran-fonts/pdms/PDMS_Saleem_QuranFont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
 
 @custom-variant dark (&:is(.dark *));
 
