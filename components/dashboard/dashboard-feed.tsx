@@ -13,6 +13,9 @@ import {
   X,
   Send,
   Loader2,
+  Play,
+  Pause,
+  Volume2,
 } from "lucide-react";
 import { PostCard } from "@/components/post/post-card";
 
@@ -78,6 +81,11 @@ export function DashboardFeed({
   const [quranAyah, setQuranAyah] = useState<QuranAyah | null>(null);
   const [loadingAyah, setLoadingAyah] = useState(true);
   const [ayahError, setAyahError] = useState(false);
+
+  // Audio Player State
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const audioRef = React.useRef<HTMLAudioElement>(null);
 
   // Post Composer State
   const [content, setContent] = useState("");
@@ -261,6 +269,21 @@ export function DashboardFeed({
         if (arabicData?.data) {
           console.log("Setting Quran Ayah:", arabicData.data);
           setQuranAyah(arabicData.data);
+
+          // Fetch audio for the specific ayah using Everyayah API
+          try {
+            const surahNum = String(arabicData.data.surah.number).padStart(3, "0");
+            const ayahNum = String(arabicData.data.numberInSurah).padStart(3, "0");
+            console.log("Fetching audio for Surah:", surahNum, "Ayah:", ayahNum);
+            
+            // Using Everyayah API with Alafasy 64kbps recitation
+            const audioUrl = `https://everyayah.com/data/Alafasy_64kbps/${surahNum}${ayahNum}.mp3`;
+            setAudioUrl(audioUrl);
+            console.log("Audio URL set:", audioUrl);
+          } catch (error) {
+            console.error("Error setting audio URL:", error);
+            setAudioUrl(null);
+          }
         } else {
           console.warn(
             "Failed to fetch Quran ayah after",
@@ -691,6 +714,59 @@ export function DashboardFeed({
               >
                 {quranAyah.text}
               </p>
+
+              {/* Audio Player */}
+              {audioUrl && (
+                <div
+                  className={`flex items-center justify-start gap-3 p-3 rounded-lg border ${
+                    theme === "light"
+                      ? "bg-amber-50/60 border-amber-200/60"
+                      : "bg-slate-800/50 border-slate-700/60"
+                  }`}
+                >
+                  <audio
+                    ref={audioRef}
+                    src={audioUrl}
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                    onEnded={() => setIsPlaying(false)}
+                    crossOrigin="anonymous"
+                  />
+
+                  <button
+                    onClick={() => {
+                      if (audioRef.current) {
+                        if (isPlaying) {
+                          audioRef.current.pause();
+                        } else {
+                          audioRef.current.play().catch((err) => console.error("Play error:", err));
+                        }
+                      }
+                    }}
+                    className={`flex-shrink-0 p-2 rounded-lg transition-colors ${
+                      theme === "light"
+                        ? "bg-amber-200/60 hover:bg-amber-200/80 text-amber-700"
+                        : "bg-cyan-600/60 hover:bg-cyan-600/80 text-cyan-200"
+                    }`}
+                  >
+                    {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+                  </button>
+
+                  <Volume2
+                    className={`flex-shrink-0 w-5 h-5 ${
+                      theme === "light" ? "text-amber-600" : "text-cyan-400"
+                    }`}
+                  />
+
+                  <p
+                    className={`text-sm font-medium flex-1 ${
+                      theme === "light" ? "text-amber-900" : "text-cyan-100"
+                    }`}
+                  >
+                    Listen to this Ayah (Alafasy)
+                  </p>
+                </div>
+              )}
 
               {/* English Translation */}
               {quranAyah.englishTranslation && (
