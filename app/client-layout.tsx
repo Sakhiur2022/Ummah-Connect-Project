@@ -4,9 +4,12 @@ import type { ReactNode } from "react";
 import { AudioVisualizer } from "@/components/audio-visualizer";
 import { AudioProvider, useAudio } from "@/lib/audio-context";
 import { ThemeProvider } from "@/lib/theme-context";
+import GlobalChatbot from '@/components/chatbot/GlobalChatbot';
+
 import Header from "@/components/ui/header";
 
-function ClientLayoutContent({ children }: { children: ReactNode }) {
+
+function ClientLayoutContent({ children }: { children: React.ReactNode }) {
   const { setAudioData } = useAudio();
 
   return (
@@ -16,9 +19,12 @@ function ClientLayoutContent({ children }: { children: ReactNode }) {
         audioSrc="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Love%20and%20Life%20%28Slowed%20%2B%20Echo%29%20by%20Baraa%20Masoud-ibe1Ere18rvPrY76MzlfxYceVSeyAh.mp3"
         onAudioData={setAudioData}
       />
+      {/* Global Chatbot */}
+      <GlobalChatbot />
     </>
   );
 }
+
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
   return (
