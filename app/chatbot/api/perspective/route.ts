@@ -133,7 +133,7 @@ function getResources() {
   
     { 
       title: 'Bangladesh Womens Health Coalition (BWHC)',
-      phone: '+88058155744',
+      phone: '+88058155744'
       url: 'https://www.bwhc.org.bd/',
     },
     { 
@@ -226,12 +226,18 @@ export async function POST(req: NextRequest) {
     // Calculate manipulation score (heuristic)
     const manipulation = calculateManipulation(text);
 
-    // Simple emotion detection (basic heuristic - can be replaced with HuggingFace model)
-    // TODO: Replace with HuggingFace emotion classification API call
-    const emotion = {
-      neutral: 0.6,
-      // Add actual emotion detection here
-    };
+// Simple heuristic emotion detection
+const emotion = {
+  neutral: Math.max(0, 1 - toxicity - harassment - (data.attributeScores.SEVERE_TOXICITY?.summaryScore.value || 0)),
+  anger: data.attributeScores.SEVERE_TOXICITY?.summaryScore.value || 0,
+  sadness: harassment, // INSULT + THREAT + IDENTITY_ATTACK = sadness proxy
+  fear: data.attributeScores.THREAT?.summaryScore.value || 0,
+  joy: Math.max(0, 0.2 - toxicity), // optional minimal joy
+};
+// Normalize so sum of values = 1
+const sum = Object.values(emotion).reduce((a, b) => a + b, 0);
+Object.keys(emotion).forEach(key => emotion[key] = emotion[key] / sum);
+
 
     // Calculate distress level
     const distress_level = calculateDistressLevel(
