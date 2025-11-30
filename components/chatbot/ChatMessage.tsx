@@ -38,7 +38,6 @@ export default function ChatMessage({ result }: ChatMessageProps) {
       sadness: '😢',
       anger: '😠',
       fear: '😰',
-      surprise: '😲',
       neutral: '😐',
     };
 
