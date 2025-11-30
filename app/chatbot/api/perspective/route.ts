@@ -57,17 +57,22 @@ function checkRateLimit(ip: string): boolean {
 }
 
 function calculateManipulation(text: string): number {
-  const lowerText = text.toLowerCase();
+  const lower = text.toLowerCase();
   let score = 0;
-  
+
+    // Loop through every keyword in the manipulation keyword list
   MANIPULATION_KEYWORDS.forEach((keyword) => {
-    if (lowerText.includes(keyword)) {
-      score += 0.15;
+    const regex = new RegExp(`\\b${keyword}\\b`, "gi");
+    const matches = lower.match(regex);      // Find all matches of the keyword in the text
+
+    if (matches) {
+      score += matches.length * 0.1;  // Add 0.1 per occurrence
     }
   });
 
   return Math.min(score, 1.0);
 }
+
 
 function calculateDistressLevel(
   toxicity: number,
