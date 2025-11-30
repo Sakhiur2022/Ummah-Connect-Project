@@ -133,7 +133,7 @@ function getResources() {
   
     { 
       title: 'Bangladesh Womens Health Coalition (BWHC)',
-      phone: '+88058155744',
+      phone: '+88058155744'
       url: 'https://www.bwhc.org.bd/',
     },
     { 
@@ -226,7 +226,6 @@ export async function POST(req: NextRequest) {
     // Calculate manipulation score (heuristic)
     const manipulation = calculateManipulation(text);
 
-    
 // simple keyword-based emotion heuristic
 function detectEmotion(text: string, data: PerspectiveResponse) {
   const lower = text.toLowerCase();
@@ -256,11 +255,11 @@ function detectEmotion(text: string, data: PerspectiveResponse) {
     neutral: neutral / total,
   };
 }
+
 // usage
 const emotion = detectEmotion(text, data);
 
 
-    
 
     // Calculate distress level
     const distress_level = calculateDistressLevel(
