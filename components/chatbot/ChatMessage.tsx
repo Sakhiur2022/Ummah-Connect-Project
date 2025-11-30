@@ -23,16 +23,16 @@ interface ChatMessageProps {
 
 export default function ChatMessage({ result }: ChatMessageProps) {
   const { theme } = useThemeSafe();
-  
+
   // Get dominant emotion
   const getDominantEmotion = () => {
     if (!result.emotion) return { name: 'neutral', emoji: '😐', score: 0 };
-    
+
     const entries = Object.entries(result.emotion);
     if (entries.length === 0) return { name: 'neutral', emoji: '😐', score: 0 };
-    
+
     const [name, score] = entries.reduce((a, b) => (a[1] > b[1] ? a : b));
-    
+
     const emojiMap: { [key: string]: string } = {
       joy: '😊',
       sadness: '😢',
@@ -41,7 +41,7 @@ export default function ChatMessage({ result }: ChatMessageProps) {
       surprise: '😲',
       neutral: '😐',
     };
-    
+
     return { name, emoji: emojiMap[name] || '😐', score };
   };
 
@@ -79,9 +79,7 @@ export default function ChatMessage({ result }: ChatMessageProps) {
     >
       {/* Emotion & Sentiment */}
       <div className={`rounded-xl p-4 border ${
-        theme === 'light' 
-          ? 'bg-amber-50 border-amber-200' 
-          : 'bg-slate-800/50 border-slate-700'
+        theme === 'light' ? 'bg-amber-50 border-amber-200' : 'bg-slate-800/50 border-slate-700'
       }`}>
         <h4 className={`text-sm font-semibold mb-3 ${
           theme === 'light' ? 'text-amber-900' : 'text-gray-400'
@@ -103,9 +101,7 @@ export default function ChatMessage({ result }: ChatMessageProps) {
 
       {/* Safety Scores */}
       <div className={`rounded-xl p-4 border space-y-3 ${
-        theme === 'light'
-          ? 'bg-amber-50 border-amber-200'
-          : 'bg-slate-800/50 border-slate-700'
+        theme === 'light' ? 'bg-amber-50 border-amber-200' : 'bg-slate-800/50 border-slate-700'
       }`}>
         <h4 className={`text-sm font-semibold mb-3 ${
           theme === 'light' ? 'text-amber-900' : 'text-gray-400'
@@ -113,24 +109,20 @@ export default function ChatMessage({ result }: ChatMessageProps) {
         
         <ScoreBar label="Toxicity" score={result.toxicity} theme={theme} />
         <ScoreBar label="Harassment" score={result.harassment} theme={theme} />
-<ScoreBar
-  label="Manipulation"
-  score={result.manipulation}
-  theme={theme}
-/>
-{result.manipulation === 0 && (
-  <p className={`text-xs mt-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-    No manipulation indicators detected
-  </p>
-)}
+        <ScoreBar label="Manipulation" score={result.manipulation} theme={theme} />
+        {result.manipulation === 0 && (
+          <p className={`text-xs mt-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+            No manipulation indicators detected
+          </p>
+        )}
       </div>
 
       {/* Distress Level */}
       <div className={`rounded-xl p-4 border ${distressStyle.bg} ${distressStyle.border}`}>
         <div className="flex items-center justify-between">
-          <span className={`text-sm font-semibold ${
-            theme === 'light' ? 'text-slate-700' : 'text-gray-300'
-          }`}>Distress Level</span>
+          <span className={`text-sm font-semibold ${theme === 'light' ? 'text-slate-700' : 'text-gray-300'}`}>
+            Distress Level
+          </span>
           <span className={`px-3 py-1 rounded-full text-sm font-bold ${distressStyle.text}`}>
             {distressStyle.label}
           </span>
@@ -140,19 +132,15 @@ export default function ChatMessage({ result }: ChatMessageProps) {
       {/* Recommendations */}
       {result.recommendations.length > 0 && (
         <div className={`rounded-xl p-4 border ${
-          theme === 'light'
-            ? 'bg-blue-50 border-blue-200'
-            : 'bg-blue-500/10 border-blue-500/30'
+          theme === 'light' ? 'bg-blue-50 border-blue-200' : 'bg-blue-500/10 border-blue-500/30'
         }`}>
-          <h4 className={`text-sm font-semibold mb-3 ${
-            theme === 'light' ? 'text-blue-900' : 'text-blue-300'
-          }`}>Recommendations</h4>
+          <h4 className={`text-sm font-semibold mb-3 ${theme === 'light' ? 'text-blue-900' : 'text-blue-300'}`}>
+            Recommendations
+          </h4>
           <ul className="space-y-2">
             {result.recommendations.map((rec, idx) => (
-              <li key={idx} className={`text-sm flex items-start gap-2 ${
-                theme === 'light' ? 'text-slate-700' : 'text-gray-300'
-              }`}>
-                <span className={theme === 'light' ? 'text-blue-600' : 'text-blue-400'} style={{marginTop: '4px'}}>•</span>
+              <li key={idx} className={`text-sm flex items-start gap-2 ${theme === 'light' ? 'text-slate-700' : 'text-gray-300'}`}>
+                <span className={theme === 'light' ? 'text-blue-600' : 'text-blue-400'} style={{ marginTop: '4px' }}>•</span>
                 <span>{rec}</span>
               </li>
             ))}
@@ -163,32 +151,26 @@ export default function ChatMessage({ result }: ChatMessageProps) {
       {/* Resources */}
       {result.resources.length > 0 && (
         <div className={`rounded-xl p-4 border ${
-          theme === 'light'
-            ? 'bg-purple-50 border-purple-200'
-            : 'bg-purple-500/10 border-purple-500/30'
+          theme === 'light' ? 'bg-purple-50 border-purple-200' : 'bg-purple-500/10 border-purple-500/30'
         }`}>
-          <h4 className={`text-sm font-semibold mb-3 ${
-            theme === 'light' ? 'text-purple-900' : 'text-purple-300'
-          }`}>Support Resources</h4>
+          <h4 className={`text-sm font-semibold mb-3 ${theme === 'light' ? 'text-purple-900' : 'text-purple-300'}`}>
+            Support Resources
+          </h4>
           <div className="space-y-2">
             {result.resources.map((resource, idx) => (
-              <div key={idx} className={`text-sm ${
-                theme === 'light' ? 'text-slate-700' : 'text-gray-300'
-              }`}>
+              <div key={idx} className={`text-sm ${theme === 'light' ? 'text-slate-700' : 'text-gray-300'}`}>
                 <span className="font-medium">{resource.title}</span>
                 {resource.phone && (
-                  <span className={`ml-2 ${theme === 'light' ? 'text-purple-700' : 'text-purple-300'}`}>📞 {resource.phone}</span>
+                  <span className={`ml-2 ${theme === 'light' ? 'text-purple-700' : 'text-purple-300'}`}>
+                    📞 {resource.phone}
+                  </span>
                 )}
                 {resource.url && (
                   <a
                     href={resource.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`ml-2 underline ${
-                      theme === 'light'
-                        ? 'text-blue-600 hover:text-blue-700'
-                        : 'text-blue-400 hover:text-blue-300'
-                    }`}
+                    className={`ml-2 underline ${theme === 'light' ? 'text-blue-600 hover:text-blue-700' : 'text-blue-400 hover:text-blue-300'}`}
                   >
                     Visit
                   </a>
@@ -204,19 +186,20 @@ export default function ChatMessage({ result }: ChatMessageProps) {
 
 // Helper component for score visualization
 function ScoreBar({ label, score, theme }: { label: string; score: number; theme: string }) {
-const percentage = Math.round((score || 0) * 100);
+  const percentage = Math.round((score || 0) * 100);
+
   const color =
-  label === "Manipulation"
-    ? score > 0.5
+    label === 'Manipulation'
+      ? score > 0.5
+        ? 'bg-red-500'
+        : score > 0.2
+        ? 'bg-orange-500'
+        : 'bg-green-500'
+      : score > 0.7
       ? 'bg-red-500'
-      : score > 0.2
+      : score > 0.4
       ? 'bg-orange-500'
-      : 'bg-green-500'
-    : score > 0.7
-    ? 'bg-red-500'
-    : score > 0.4
-    ? 'bg-orange-500'
-    : 'bg-green-500';
+      : 'bg-green-500';
 
   const bgColor = theme === 'light' ? 'bg-gray-200' : 'bg-slate-700';
   const textColor = theme === 'light' ? 'text-slate-700' : 'text-gray-300';
