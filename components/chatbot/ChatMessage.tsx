@@ -113,7 +113,16 @@ export default function ChatMessage({ result }: ChatMessageProps) {
         
         <ScoreBar label="Toxicity" score={result.toxicity} theme={theme} />
         <ScoreBar label="Harassment" score={result.harassment} theme={theme} />
-        <ScoreBar label="Manipulation" score={result.manipulation} theme={theme} />
+<ScoreBar
+  label="Manipulation"
+  score={result.manipulation}
+  theme={theme}
+/>
+{result.manipulation === 0 && (
+  <p className={`text-xs mt-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+    No manipulation indicators detected
+  </p>
+)}
       </div>
 
       {/* Distress Level */}
@@ -195,8 +204,20 @@ export default function ChatMessage({ result }: ChatMessageProps) {
 
 // Helper component for score visualization
 function ScoreBar({ label, score, theme }: { label: string; score: number; theme: string }) {
-  const percentage = Math.round(score * 100);
-  const color = score > 0.7 ? 'bg-red-500' : score > 0.4 ? 'bg-orange-500' : 'bg-green-500';
+const percentage = Math.round((score || 0) * 100);
+  const color =
+  label === "Manipulation"
+    ? score > 0.5
+      ? 'bg-red-500'
+      : score > 0.2
+      ? 'bg-orange-500'
+      : 'bg-green-500'
+    : score > 0.7
+    ? 'bg-red-500'
+    : score > 0.4
+    ? 'bg-orange-500'
+    : 'bg-green-500';
+
   const bgColor = theme === 'light' ? 'bg-gray-200' : 'bg-slate-700';
   const textColor = theme === 'light' ? 'text-slate-700' : 'text-gray-300';
 
