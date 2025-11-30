@@ -226,18 +226,41 @@ export async function POST(req: NextRequest) {
     // Calculate manipulation score (heuristic)
     const manipulation = calculateManipulation(text);
 
-// Simple heuristic emotion detection
-const emotion = {
-  neutral: Math.max(0, 1 - toxicity - harassment - (data.attributeScores.SEVERE_TOXICITY?.summaryScore.value || 0)),
-  anger: data.attributeScores.SEVERE_TOXICITY?.summaryScore.value || 0,
-  sadness: harassment, // INSULT + THREAT + IDENTITY_ATTACK = sadness proxy
-  fear: data.attributeScores.THREAT?.summaryScore.value || 0,
-  joy: Math.max(0, 0.2 - toxicity), // optional minimal joy
-};
-// Normalize so sum of values = 1
-const sum = Object.values(emotion).reduce((a, b) => a + b, 0);
-Object.keys(emotion).forEach(key => emotion[key] = emotion[key] / sum);
+    
+// simple keyword-based emotion heuristic
+function detectEmotion(text: string, data: PerspectiveResponse) {
+  const lower = text.toLowerCase();
 
+  // Base scores from API
+  const anger = data.attributeScores.SEVERE_TOXICITY?.summaryScore.value || 0;
+  const sadness = Math.max(
+    data.attributeScores.INSULT?.summaryScore.value || 0,
+    data.attributeScores.THREAT?.summaryScore.value || 0
+  );
+  const fear = lower.includes('scared') || lower.includes('afraid') ? 0.8 : 0;
+  const joy = lower.includes('happy') || lower.includes('amazing') || lower.includes('love') ? 0.8 : 0;
+  const surprise = lower.includes('wow') || lower.includes('unbelievable') ? 0.7 : 0;
+
+  // neutral = leftover
+  let neutral = 1 - Math.min(1, anger + sadness + fear + joy + surprise);
+  if (neutral < 0) neutral = 0;
+
+  // normalize so sum <= 1
+  const total = anger + sadness + fear + joy + surprise + neutral;
+  return {
+    anger: anger / total,
+    sadness: sadness / total,
+    fear: fear / total,
+    joy: joy / total,
+    surprise: surprise / total,
+    neutral: neutral / total,
+  };
+}
+// usage
+const emotion = detectEmotion(text, data);
+
+
+    
 
     // Calculate distress level
     const distress_level = calculateDistressLevel(
