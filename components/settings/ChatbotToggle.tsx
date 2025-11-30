@@ -11,8 +11,6 @@ export default function ChatbotToggle() {
   const { theme } = useThemeSafe();
   const [enabled, setEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetch = async () => {
@@ -58,11 +56,8 @@ export default function ChatbotToggle() {
 
       setEnabled(newState);
       localStorage.setItem(STORAGE_KEY, String(newState));
-      setMessage(newState ? 'Chatbot enabled' : 'Chatbot disabled');
-      setTimeout(() => setMessage(''), 3000);
     } catch (err: any) {
-      setError(err.message || 'Failed to update Chatbot setting');
-      setTimeout(() => setError(''), 3000);
+      console.error(err.message || 'Failed to update Chatbot setting');
     } finally {
       setLoading(false);
     }
@@ -71,25 +66,26 @@ export default function ChatbotToggle() {
   if (loading) return <div className="p-4 rounded-lg animate-pulse">Loading...</div>;
 
   return (
-    <div className={`p-4 rounded-lg border ${theme === 'light' ? 'bg-white border-amber-300' : 'bg-slate-900 border-slate-700'}`}>
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="font-semibold text-lg flex items-center gap-2">
-          <Bot className="w-5 h-5" /> Chatbot Popup
-        </h3>
+    <div className={`p-2 rounded-lg border flex items-center justify-between cursor-pointer ${
+      theme === 'light' ? 'bg-white border-amber-300' : 'bg-slate-900 border-slate-700'
+    }`} onClick={handleToggle}>
+      <div className="flex items-center gap-2">
+        <Bot className="w-4 h-4" />
+        <span className="text-sm">Chatbot</span>
       </div>
-      <p className="text-sm mb-3">
-        {enabled ? 'Analyze Emotion popup is enabled globally' : 'Analyze Emotion popup is disabled'}
-      </p>
-      <button
-        onClick={handleToggle}
-        className={`w-full py-2 rounded-lg font-medium transition ${
-          enabled ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-red-600 text-white hover:bg-red-700'
+
+      {/* Toggle switch */}
+      <div
+        className={`w-10 h-5 rounded-full p-0.5 flex items-center transition-colors ${
+          enabled ? 'bg-orange-500' : 'bg-gray-400'
         }`}
       >
-        {enabled ? 'Disable Chatbot Popup' : 'Enable Chatbot Popup'}
-      </button>
-      {message && <p className="mt-2 text-sm text-green-500">{message}</p>}
-      {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+        <div
+          className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
+            enabled ? 'translate-x-5' : 'translate-x-0'
+          }`}
+        />
+      </div>
     </div>
   );
 }
