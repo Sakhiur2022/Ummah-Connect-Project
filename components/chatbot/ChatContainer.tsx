@@ -53,8 +53,9 @@ export default function ChatContainer() {
     };
   }, [handleSelectionChange, isEnabled, toggleEnabled]);
 
-  return (
-    <div ref={containerRef} className="relative min-h-screen p-6">
+return (
+  <div ref={containerRef} className="fixed inset-0 z-[9999] pointer-events-none">
+
       {/* Header */}
       <div className={`${theme === 'light' ? 'bg-white/70 border-amber-300' : 'bg-slate-800/50 border-slate-700'} backdrop-blur-md rounded-2xl p-8 border max-w-4xl mx-auto mb-8`}>
         <h1 className={`text-4xl font-bold ${theme === 'light' ? 'text-amber-700' : 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400'} mb-2 text-center`}>
