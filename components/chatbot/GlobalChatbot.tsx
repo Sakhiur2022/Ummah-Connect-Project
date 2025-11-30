@@ -1,122 +1,90 @@
-'use client';
+"use client";
 
-// components/chatbot/GlobalChatbot.tsx
-import { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import ChatContainer from './ChatContainer';
-import { useChat } from '@/hooks/useChat';
-import { useThemeSafe } from '@/lib/use-theme-safe';
-import { createPortal } from "react-dom";
+import React, { useState, useEffect, useRef } from "react";
+import ChatContainer from "@/components/chat/ChatContainer";
 
+export default function GlobalChatBot() {
+  const [showPopup, setShowPopup] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [selectedText, setSelectedText] = useState("");
+  const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
 
-export default function GlobalChatbot() {
-  const { theme } = useThemeSafe();
-  const {
-    selectedText,
-    bubblePosition,
-    showBubble,
-    isPopupOpen,
-    isEnabled,
-    handleSelectionChange,
-    openPopup,
-    closePopup,
-    toggleEnabled,
-  } = useChat();
+  const chatRef = useRef<HTMLDivElement>(null);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Listen for text selection anywhere on the page
+  // Detect text selection
   useEffect(() => {
-    const handleSelection = () => handleSelectionChange();
+    const handleMouseUp = () => {
+      const text = window.getSelection()?.toString().trim();
 
-    document.addEventListener('mouseup', handleSelection);
-    document.addEventListener('touchend', handleSelection);
+      if (text && text.length > 0) {
+        const selection = window.getSelection();
+        if (!selection) return;
 
-    return () => {
-      document.removeEventListener('mouseup', handleSelection);
-      document.removeEventListener('touchend', handleSelection);
-    };
-  }, [handleSelectionChange]);
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
 
-
-  
-return createPortal(
-  <>
-    {showBubble && (
-      <div 
-        className="fixed z-[99999] bg-black text-white px-3 py-1 rounded-full text-sm shadow-lg"
-        style={{ left: bubblePosition.x, top: bubblePosition.y }}
-        onClick={openPopup}
-      >
-        Analyze Emotion
-      </div>
-    )}
-
-    {isPopupOpen && (
-      <ChatContainer
-        selectedText={selectedText}
-        onClose={closePopup}
-        result={analysisResult}
-        error={error}
-        isLoading={isLoading}
-      />
-    )}
-  </>,
-  document.body
-);
-
-
-  
-  // Close popup when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node) &&
-        isPopupOpen
-      ) {
-        closePopup();
+        setSelectedText(text);
+        setPopupPos({
+          x: rect.left + rect.width / 2,
+          y: rect.top - 40,
+        });
+        setShowPopup(true);
+      } else {
+        setShowPopup(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
 
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isPopupOpen, closePopup]);
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => document.removeEventListener("mouseup", handleMouseUp);
+  }, []);
+
+  // Click outside to close chat
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (chatRef.current && !chatRef.current.contains(e.target as Node)) {
+        setShowChat(false);
+      }
+    }
+
+    if (showChat) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showChat]);
 
   return (
     <>
-      {/* Floating bubble */}
-      <AnimatePresence>
-        {showBubble && isEnabled && !isPopupOpen && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.2 }}
-            onClick={openPopup}
-            style={{
-              position: 'fixed',
-              left: bubblePosition.x,
-              top: bubblePosition.y,
-              zIndex: 1000,
-            }}
-            className={`${
-              theme === 'light'
-                ? 'bg-gradient-to-r from-amber-600 to-amber-500'
-                : 'bg-gradient-to-r from-cyan-500 to-blue-500'
-            } text-white px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-shadow flex items-center gap-2 text-sm font-medium`}
-          >
-            Analyze Emotion 🔍
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {/* 🔹 Popup for "Analyze Emotion" */}
+      {showPopup && !showChat && (
+        <div
+          className="fixed px-3 py-2 text-sm bg-black text-white rounded shadow-lg z-[9999] cursor-pointer"
+          style={{ top: popupPos.y, left: popupPos.x }}
+          onClick={() => {
+            setShowChat(true);
+            setShowPopup(false);
+          }}
+        >
+          Analyze Emotion
+        </div>
+      )}
 
-      {/* Chat popup container */}
-      <div ref={containerRef}>
-        <AnimatePresence>
-          {isPopupOpen && <ChatContainer />}
-        </AnimatePresence>
-      </div>
+      {/* 🔹 Dim Background Overlay */}
+      {showChat && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[9998]"></div>
+      )}
+
+      {/* 🔹 Chat Container */}
+      {showChat && (
+        <div
+          ref={chatRef}
+          className="fixed bottom-6 right-6 z-[9999] w-[380px] max-h-[70vh]"
+        >
+          <ChatContainer initialMessage={selectedText} />
+        </div>
+      )}
     </>
   );
 }
