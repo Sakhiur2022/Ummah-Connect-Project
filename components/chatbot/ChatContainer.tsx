@@ -85,10 +85,11 @@ export default function ChatContainer() {
               exit={{ opacity: 0, scale: 0.9 }}
               className={`fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
                 ${theme === "light" ? "bg-white border-amber-300" : "bg-slate-900 border-slate-700"} 
-                p-6 rounded-2xl w-full max-w-xl z-[2001] shadow-2xl`}
+                p-6 rounded-2xl w-full max-w-xl z-[2001] shadow-2xl
+                max-h-[85vh] flex flex-col`}
             >
               {/* Header */}
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-start mb-2 flex-shrink-0">
                 <h2
                   className={`text-xl font-bold ${
                     theme === "light" ? "text-amber-950" : "text-cyan-300"
@@ -109,53 +110,56 @@ export default function ChatContainer() {
                 </button>
               </div>
 
-              {/* Selected text preview */}
-              <div
-                className={`mt-2 p-3 rounded-md text-sm ${
-                  theme === "light" ? "bg-amber-50 text-amber-950" : "bg-slate-800 text-slate-200"
-                }`}
-              >
-                {selectedText || "No text selected"}
-              </div>
-
-              {/* Chat input */}
-              <div className="mt-4">
-                <ChatInput
-                  initialMessage={selectedText}
-                  onAnalyze={(text) => analyzeText(text)}
-                />
-              </div>
-
-              {/* Loading */}
-              {isLoading && (
+              {/* Scrollable content */}
+              <div className="overflow-y-auto flex-1 space-y-4 mt-2">
+                {/* Selected text preview */}
                 <div
-                  className={`mt-4 text-center ${
-                    theme === "light" ? "text-amber-600" : "text-cyan-400"
+                  className={`p-3 rounded-md text-sm ${
+                    theme === "light" ? "bg-amber-50 text-amber-950" : "bg-slate-800 text-slate-200"
                   }`}
                 >
-                  Analyzing…
+                  {selectedText || "No text selected"}
                 </div>
-              )}
 
-              {/* Error */}
-              {error && (
-                <div
-                  className={`mt-4 p-3 rounded-md ${
-                    theme === "light"
-                      ? "bg-red-50 text-red-900 border border-red-200"
-                      : "bg-red-500/20 text-red-200 border border-red-500/50"
-                  }`}
-                >
-                  {error}
+                {/* Chat input */}
+                <div>
+                  <ChatInput
+                    initialMessage={selectedText}
+                    onAnalyze={(text) => analyzeText(text)}
+                  />
                 </div>
-              )}
 
-              {/* Result */}
-              {analysisResult && !isLoading && (
-                <div className="mt-4 space-y-4">
-                  <ChatMessage result={analysisResult} />
-                </div>
-              )}
+                {/* Loading */}
+                {isLoading && (
+                  <div
+                    className={`mt-2 text-center ${
+                      theme === "light" ? "text-amber-600" : "text-cyan-400"
+                    }`}
+                  >
+                    Analyzing…
+                  </div>
+                )}
+
+                {/* Error */}
+                {error && (
+                  <div
+                    className={`p-3 rounded-md ${
+                      theme === "light"
+                        ? "bg-red-50 text-red-900 border border-red-200"
+                        : "bg-red-500/20 text-red-200 border border-red-500/50"
+                    }`}
+                  >
+                    {error}
+                  </div>
+                )}
+
+                {/* Result */}
+                {analysisResult && !isLoading && (
+                  <div className="space-y-4">
+                    <ChatMessage result={analysisResult} />
+                  </div>
+                )}
+              </div>
             </motion.div>
           </>
         )}
