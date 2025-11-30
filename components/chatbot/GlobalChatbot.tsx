@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ChatContainer from './ChatContainer';
 import { useChat } from '@/hooks/useChat';
 import { useThemeSafe } from '@/lib/use-theme-safe';
+import { createPortal } from "react-dom";
+
 
 export default function GlobalChatbot() {
   const { theme } = useThemeSafe();
@@ -36,6 +38,35 @@ export default function GlobalChatbot() {
     };
   }, [handleSelectionChange]);
 
+
+  
+return createPortal(
+  <>
+    {showBubble && (
+      <div 
+        className="fixed z-[99999] bg-black text-white px-3 py-1 rounded-full text-sm shadow-lg"
+        style={{ left: bubblePosition.x, top: bubblePosition.y }}
+        onClick={openPopup}
+      >
+        Analyze Emotion
+      </div>
+    )}
+
+    {isPopupOpen && (
+      <ChatContainer
+        selectedText={selectedText}
+        onClose={closePopup}
+        result={analysisResult}
+        error={error}
+        isLoading={isLoading}
+      />
+    )}
+  </>,
+  document.body
+);
+
+
+  
   // Close popup when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
