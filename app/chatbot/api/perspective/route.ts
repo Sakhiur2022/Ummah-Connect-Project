@@ -133,7 +133,7 @@ function getResources() {
   
     { 
       title: 'Bangladesh Womens Health Coalition (BWHC)',
-      phone: '+88058155744'
+      phone: '+88058155744',
       url: 'https://www.bwhc.org.bd/',
     },
     { 
