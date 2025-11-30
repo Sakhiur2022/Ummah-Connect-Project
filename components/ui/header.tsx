@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import ChatbotToggle from '@/components/settings/ChatbotToggle';
+
 import {
   Search,
   Home,
@@ -492,6 +494,11 @@ export default function Header() {
                   <div className="border-t border-border/20 mt-1 pt-1">
                     <ThemeToggleButton />
                   </div>
+
+                  <div className="border-t border-border/20 mt-1 pt-1">
+                    <ChatbotToggle />
+                  </div>
+
 
                   <div className="border-t border-border/20 mt-1 pt-1">
                     <button
