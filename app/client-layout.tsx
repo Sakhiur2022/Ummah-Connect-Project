@@ -25,7 +25,6 @@ function ClientLayoutContent({ children }: { children: React.ReactNode }) {
     </>
   );
 }
-
 export default function ClientLayout({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider>
