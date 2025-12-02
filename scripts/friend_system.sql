@@ -249,3 +249,36 @@ BEGIN
   );
 END;
 $function$;
+
+-- Trigger function to notify friend request sender when request is accepted
+CREATE OR REPLACE FUNCTION public.notify_friend_request_accepted()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF (TG_OP = 'UPDATE' AND NEW.status = 'accepted' AND OLD.status IS DISTINCT FROM 'accepted') THEN
+    -- Create notification for the sender
+    INSERT INTO public."NOTIFICATION" (
+      recipient_id,
+      actor_id,
+      verb,
+      object_type,
+      object_id,
+      is_read
+    ) VALUES (
+      NEW.sender_id,
+      NEW.receiver_id,
+      'friend_request_accepted',
+      'friend_request',
+      NEW.id::text,
+      false
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger for friend request acceptance notification
+DROP TRIGGER IF EXISTS trg_notify_friend_request_accepted ON public."FRIEND_REQUEST";
+CREATE TRIGGER trg_notify_friend_request_accepted
+AFTER UPDATE ON public."FRIEND_REQUEST"
+FOR EACH ROW
+EXECUTE FUNCTION public.notify_friend_request_accepted();

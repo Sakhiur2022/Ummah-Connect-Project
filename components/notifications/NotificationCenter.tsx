@@ -485,8 +485,38 @@ export function NotificationCenter() {
                         </button>
                       )}
 
+                      {/* Friend Request Accepted Notification */}
+                      {notif.verb === "friend_request_accepted" && (
+                        <button
+                          onClick={() => markAsRead(notif.notification_id)}
+                          className="w-full text-left"
+                        >
+                          <div className="flex items-start gap-3">
+                            {notif.actor?.profile_image ? (
+                              <img
+                                src={notif.actor.profile_image}
+                                alt={notif.actor?.full_name || "User"}
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${theme === 'light' ? 'bg-[oklch(0.7_0.14_30)]' : 'bg-[oklch(0.75_0.15_45)]'}`}>
+                                {(notif.actor?.full_name || "U").charAt(0)}
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm ${theme === 'light' ? 'text-white' : 'text-[oklch(0.95_0.01_60)]'}`}>
+                                {getNotificationMessage(notif)}
+                              </p>
+                              <p className={`text-xs mt-1 ${theme === 'light' ? 'text-white' : 'text-[oklch(0.65_0.02_60)]'}`}>
+                                {new Date(notif.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+                      )}
+
                       {/* Other Notifications */}
-                      {notif.verb !== "friend_request" && notif.verb !== "mahram_request" && notif.verb !== "mahram_approved" && (
+                      {notif.verb !== "friend_request" && notif.verb !== "mahram_request" && notif.verb !== "mahram_approved" && notif.verb !== "friend_request_accepted" && (
                         <button
                           onClick={() => markAsRead(notif.notification_id)}
                           className="w-full text-left"
@@ -685,8 +715,38 @@ export function NotificationCenter() {
                         </button>
                       )}
 
+                      {/* Friend Request Accepted Notification */}
+                      {notif.verb === "friend_request_accepted" && (
+                        <button
+                          onClick={() => markAsRead(notif.notification_id)}
+                          className="w-full text-left"
+                        >
+                          <div className="flex items-start gap-3">
+                            {notif.actor?.profile_image ? (
+                              <img
+                                src={notif.actor.profile_image}
+                                alt={notif.actor?.full_name || "User"}
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold">
+                                {(notif.actor?.full_name || "U").charAt(0)}
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm ${theme === 'light' ? 'text-white' : 'text-foreground'}`}>
+                                {getNotificationMessage(notif)}
+                              </p>
+                              <p className={`text-xs mt-1 ${theme === 'light' ? 'text-white' : 'text-muted-foreground'}`}>
+                                {new Date(notif.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+                      )}
+
                       {/* Other Notifications */}
-                      {notif.verb !== "friend_request" && notif.verb !== "mahram_request" && notif.verb !== "mahram_approved" && (
+                      {notif.verb !== "friend_request" && notif.verb !== "mahram_request" && notif.verb !== "mahram_approved" && notif.verb !== "friend_request_accepted" && (
                         <button
                           onClick={() => markAsRead(notif.notification_id)}
                           className="w-full text-left"
