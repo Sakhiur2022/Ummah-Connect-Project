@@ -597,19 +597,7 @@ export default function Header() {
             {/* Navigation Items */}
             <div className="space-y-2 px-4">
               {navigation.map((item) => 
-                item.label === "Chatbot" ? (
-                  <button
-                    key={item.label}
-                    onClick={() => {
-                      router.push(item.href);
-                      setShowMobileMenu(false);
-                    }}
-                    className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-accent/50 transition-colors"
-                  >
-                    <item.icon className="w-5 h-5 text-muted-foreground" />
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </button>
-                ) : item.label === "Notifications" ? (
+                item.label === "Chatbot" ? null : item.label === "Notifications" ? (
                   <div
                     key={item.label}
                     className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-accent/50 transition-colors"
@@ -640,6 +628,10 @@ export default function Header() {
 
             {/* Mobile Menu Footer */}
             <div className="border-t border-border/20 pt-4 mt-4 px-4">
+              <div className="border-b border-border/20 pb-4 mb-4">
+                <ChatbotToggle />
+              </div>
+
               <button
                 onClick={() => {
                   router.push("/settings");

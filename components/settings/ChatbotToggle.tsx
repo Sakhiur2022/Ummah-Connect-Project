@@ -67,7 +67,7 @@ export default function ChatbotToggle() {
 
   return (
     <div className={`p-2 rounded-lg border flex items-center justify-between cursor-pointer ${
-      theme === 'light' ? 'bg-white border-amber-300' : 'bg-slate-900 border-slate-700'
+     'bg-slate-900 border-slate-700'
     }`} onClick={handleToggle}>
       <div className="flex items-center gap-2">
         <Bot className="w-4 h-4" />

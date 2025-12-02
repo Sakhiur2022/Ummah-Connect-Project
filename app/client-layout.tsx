@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { AudioVisualizer } from "@/components/audio-visualizer";
 import { AudioProvider, useAudio } from "@/lib/audio-context";
 import { ThemeProvider } from "@/lib/theme-context";
-import ChatContainer from '@/components/chat/ChatContainer'; // <-- updated import
+import ChatContainer from '@/components/chatbot/ChatContainer'; // <-- updated import
 
 import Header from "@/components/ui/header";
 
