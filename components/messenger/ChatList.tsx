@@ -118,15 +118,99 @@ export default function ChatList({ onSelectChat, selectedUserId }: ChatListProps
       return;
     }
 
+    if (!user) return;
+
     setIsSearching(true);
 
-    const { data, error } = await supabase
-      .from('users')
-      .select('id, username, full_name, profile_image')
-      .ilike('username', `%${searchQuery}%`);
+    try {
+      // Get current user's details
+      const { data: currentUserData, error: currentUserError } = await supabase
+        .from('users')
+        .select('gender')
+        .eq('id', user.id)
+        .single();
 
-    if (error) console.error('Search error:', error);
-    else setSearchResults(data || []);
+      if (currentUserError) throw currentUserError;
+
+      // Search for users
+      const { data: searchData, error: searchError } = await supabase
+        .from('users')
+        .select('id, username, full_name, profile_image, gender')
+        .ilike('username', `%${searchQuery}%`);
+
+      if (searchError) throw searchError;
+
+      if (!searchData) {
+        setSearchResults([]);
+        return;
+      }
+
+      // Filter results based on gender rules
+      let filteredResults = searchData.filter((searchUser: any) => {
+        // Don't show self
+        if (searchUser.id === user.id) return false;
+
+        // If same gender, always show
+        if (searchUser.gender === currentUserData.gender) return true;
+
+        // If opposite gender, check if they are mahram
+        // For now, only allow opposite gender if they are in the mahram list
+        return false; // Default: don't show opposite gender
+      });
+
+      // For opposite gender users, check mahram relationship
+      if (searchData.some((u: any) => u.gender !== currentUserData.gender)) {
+        const oppositeGenderUsers = searchData.filter(
+          (u: any) => u.gender !== currentUserData.gender && u.id !== user.id
+        );
+
+        const oppositeGenderUserIds = oppositeGenderUsers.map((u: any) => u.id);
+
+        if (oppositeGenderUserIds.length > 0) {
+          // Check MAHRAM table for relationships in both directions
+          const { data: mahramData1, error: error1 } = await supabase
+            .from('MAHRAM')
+            .select('related_user_id')
+            .eq('user_id', user.id)
+            .in('related_user_id', oppositeGenderUserIds);
+
+          const { data: mahramData2, error: error2 } = await supabase
+            .from('MAHRAM')
+            .select('user_id')
+            .eq('related_user_id', user.id)
+            .in('user_id', oppositeGenderUserIds);
+
+          const mahramIds = new Set<string>();
+
+          // Add mahrams where current user is the user_id
+          if (!error1 && mahramData1) {
+            mahramData1.forEach((m: any) => mahramIds.add(m.related_user_id));
+          }
+
+          // Add mahrams where current user is the related_user_id
+          if (!error2 && mahramData2) {
+            mahramData2.forEach((m: any) => mahramIds.add(m.user_id));
+          }
+
+          // Add mahram users to filtered results
+          if (mahramIds.size > 0) {
+            const mahramUsers = oppositeGenderUsers.filter((u: any) =>
+              mahramIds.has(u.id)
+            );
+
+            filteredResults = [
+              ...filteredResults,
+              ...mahramUsers,
+            ];
+          }
+        }
+      }
+
+      setSearchResults(filteredResults);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    }
   };
 
   const handleSelectUserFromSearch = (userId: string) => {

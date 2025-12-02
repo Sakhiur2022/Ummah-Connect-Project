@@ -197,11 +197,6 @@ export default function Header() {
       href: "/notifications",
       badge: notifications,
     },
-    {
-      icon: Bot,
-      label: "Chatbot",
-      href: "/chatbot",
-    },
   ];
 
   return (
