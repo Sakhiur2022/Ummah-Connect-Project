@@ -4,7 +4,7 @@ import { useThemeSafe } from "@/lib/use-theme-safe";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { UserPlus, UserCheck, Clock, X, Share2 } from "lucide-react";
+import { UserPlus, UserCheck, Clock, X, Share2, UserMinus } from "lucide-react";
 
 interface ProfileHeaderProps {
   user: any;
@@ -16,8 +16,10 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
   const { theme } = useThemeSafe();
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   const [friendRequestStatus, setFriendRequestStatus] = useState<FriendRequestStatus>('not_friends');
+  const [isMahram, setIsMahram] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [showUnfriendModal, setShowUnfriendModal] = useState(false);
+  const [showRemoveMahramModal, setShowRemoveMahramModal] = useState(false);
   const supabase = createClient();
 
   const isOwnProfile = user.id === currentUserId;
@@ -40,38 +42,75 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
           .from('FRIEND_REQUEST')
           .select('status')
           .eq('sender_id', currentUserId)
-          .eq('receiver_id', user.id)
-          .single();
+          .eq('receiver_id', user.id);
 
-        if (sentData) {
-          if (sentData.status === 'accepted') {
+        if (sentData && sentData.length > 0) {
+          if (sentData[0].status === 'accepted') {
             setFriendRequestStatus('friends');
           } else {
             setFriendRequestStatus('pending_sent');
           }
-          return;
-        }
-
-        // Try to find request where current user is receiver
-        const { data: receivedData } = await supabase
-          .from('FRIEND_REQUEST')
-          .select('status')
-          .eq('sender_id', user.id)
-          .eq('receiver_id', currentUserId)
-          .single();
-
-        if (receivedData) {
-          if (receivedData.status === 'accepted') {
-            setFriendRequestStatus('friends');
-          } else {
-            setFriendRequestStatus('pending_received');
-          }
         } else {
-          setFriendRequestStatus('not_friends');
+          // Try to find request where current user is receiver
+          const { data: receivedData } = await supabase
+            .from('FRIEND_REQUEST')
+            .select('status')
+            .eq('sender_id', user.id)
+            .eq('receiver_id', currentUserId);
+
+          if (receivedData && receivedData.length > 0) {
+            if (receivedData[0].status === 'accepted') {
+              setFriendRequestStatus('friends');
+            } else {
+              setFriendRequestStatus('pending_received');
+            }
+          } else {
+            setFriendRequestStatus('not_friends');
+          }
         }
       } catch (err) {
         console.error('Error in fetchFriendRequestStatus:', err);
         setFriendRequestStatus('not_friends');
+      }
+
+      // Check if user is mahram in both directions
+      try {
+        let mahramData1 = [];
+        let mahramData2 = [];
+
+        // Query 1: where currentUser is user_id
+        try {
+          const { data } = await supabase
+            .from('MAHRAM')
+            .select('mahram_id, user_id, related_user_id')
+            .eq('user_id', currentUserId)
+            .eq('related_user_id', user.id);
+
+          if (data) mahramData1 = data;
+        } catch (err1) {
+          console.error('Mahram query 1 error:', err1);
+        }
+
+        // Query 2: where currentUser is related_user_id
+        try {
+          const { data } = await supabase
+            .from('MAHRAM')
+            .select('mahram_id, user_id, related_user_id')
+            .eq('user_id', user.id)
+            .eq('related_user_id', currentUserId);
+
+          if (data) mahramData2 = data;
+        } catch (err2) {
+          console.error('Mahram query 2 error:', err2);
+        }
+
+        // Combine results
+        const combinedMahramData = [...mahramData1, ...mahramData2];
+        const isMahramRelated = combinedMahramData.length > 0;
+        setIsMahram(isMahramRelated);
+      } catch (err) {
+        console.error('Error checking mahram status:', err);
+        setIsMahram(false);
       }
     };
 
@@ -94,8 +133,26 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
       )
       .subscribe();
 
+    // Subscribe to mahram status changes
+    const mahramSubscription = supabase
+      .channel('mahram-status-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'MAHRAM',
+          filter: `or(and(user_id=eq.${currentUserId},related_user_id=eq.${user.id}),and(user_id=eq.${user.id},related_user_id=eq.${currentUserId}))`
+        },
+        () => {
+          fetchFriendRequestStatus();
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(friendRequestSubscription);
+      supabase.removeChannel(mahramSubscription);
     };
   }, [currentUserId, user.id, isOwnProfile]);
 
@@ -229,6 +286,52 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
     }
   };
 
+  const removeMahram = async () => {
+    if (!currentUserId) return;
+    setActionLoading(true);
+
+    try {
+      // Delete from MAHRAM table in both directions
+      await supabase
+        .from('MAHRAM')
+        .delete()
+        .or(
+          `and(user_id.eq.${currentUserId},related_user_id.eq.${user.id}),` +
+          `and(user_id.eq.${user.id},related_user_id.eq.${currentUserId})`
+        );
+
+      // Delete from FRIEND table in both directions (user_a and user_b columns)
+      await supabase
+        .from('FRIEND')
+        .delete()
+        .or(
+          `and(user_a.eq.${currentUserId},user_b.eq.${user.id}),` +
+          `and(user_a.eq.${user.id},user_b.eq.${currentUserId})`
+        );
+
+      // Delete from FRIEND_REQUEST table in both directions (sender_id and receiver_id columns)
+      await supabase
+        .from('FRIEND_REQUEST')
+        .delete()
+        .or(
+          `and(sender_id.eq.${currentUserId},receiver_id.eq.${user.id}),` +
+          `and(sender_id.eq.${user.id},receiver_id.eq.${currentUserId})`
+        );
+
+      setIsMahram(false);
+      setFriendRequestStatus('not_friends');
+      setShowRemoveMahramModal(false);
+
+      // Show success message
+      alert(`${user.full_name} has been removed as Mahram`);
+    } catch (error) {
+      console.error('Error removing mahram:', error);
+      alert('Failed to remove mahram. Please try again.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const removeFriend = async () => {
     if (!currentUserId) return;
     setActionLoading(true);
@@ -339,7 +442,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
             )}
             {/* Friend Action Buttons */}
             {!isOwnProfile && currentUserId && (
-              <div className="flex gap-2 mt-4">
+              <div className="flex gap-2 mt-4 flex-wrap">
                 {friendRequestStatus === 'not_friends' && (
                   <button
                     onClick={sendFriendRequest}
@@ -416,6 +519,20 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
                     {actionLoading ? 'Removing...' : 'Friends'}
                   </button>
                 )}
+                {isMahram && (
+                  <button
+                    onClick={() => setShowRemoveMahramModal(true)}
+                    disabled={actionLoading}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition disabled:opacity-50 ${
+                      theme === 'light'
+                        ? 'bg-purple-100 hover:bg-purple-200 text-purple-900'
+                        : 'bg-purple-900/50 hover:bg-purple-900/70 text-purple-200'
+                    }`}
+                  >
+                    <UserMinus size={18} />
+                    {actionLoading ? 'Removing...' : 'Remove Mahram'}
+                  </button>
+                )}
               </div>
             )}
 
@@ -481,6 +598,57 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
                 }`}
               >
                 {actionLoading ? "Removing..." : "Yes, Unfriend"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Remove Mahram Confirmation Modal */}
+      {showRemoveMahramModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className={`rounded-xl p-6 max-w-sm w-full ${
+              theme === "light"
+                ? "bg-white border border-purple-200 shadow-lg"
+                : "bg-slate-800 border border-purple-700 shadow-lg shadow-black/50"
+            }`}
+          >
+            <h2 className={`text-xl font-bold mb-4 ${
+              theme === "light" ? "text-gray-900" : "text-slate-100"
+            }`}>
+              Remove {user.full_name} as Mahram?
+            </h2>
+            <p className={`mb-4 text-sm ${
+              theme === "light" ? "text-gray-600" : "text-slate-300"
+            }`}>
+              This will remove the mahram relationship and unfriend them.
+            </p>
+        
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowRemoveMahramModal(false)}
+                className={`flex-1 px-4 py-2 rounded-lg font-semibold transition ${
+                  theme === "light"
+                    ? "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                    : "bg-slate-700 hover:bg-slate-600 text-slate-100"
+                }`}
+              >
+                No
+              </button>
+              <button
+                onClick={removeMahram}
+                disabled={actionLoading}
+                className={`flex-1 px-4 py-2 rounded-lg font-semibold transition disabled:opacity-50 ${
+                  theme === "light"
+                    ? "bg-purple-600 hover:bg-purple-700 text-white"
+                    : "bg-purple-600 hover:bg-purple-700 text-white"
+                }`}
+              >
+                {actionLoading ? "Removing..." : "Yes, Remove"}
               </button>
             </div>
           </motion.div>
