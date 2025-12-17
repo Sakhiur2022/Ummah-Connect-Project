@@ -53,15 +53,16 @@
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  Tables:                                                        │
-│  ├─ users                          (gender, privacy settings)  │
-│  ├─ MAHRAM                         (relationships)             │
-│  ├─ MAHRAM_RELATION_TYPE           (relation definitions)      │
-│  ├─ NOTIFICATION                   (event log)                 │
-│  └─ FRIEND_REQUEST                 (friend relationships)      │
+│  ├─ users                          (gender, privacy settings)   │
+│  ├─ MAHRAM                         (relationships)              │
+│  ├─ MAHRAM_RELATION_TYPE           (relation definitions)       │
+│  ├─ NOTIFICATION                   (event log)                  │
+│  ├─ FRIEND_REQUEST                 (friend relationships)       │
+│  └─ MAHRAM_REJECTION_COOLDOWN      (7-day request cooldown)     │
 │                                                                 │
-│  Columns Added:                                                │
-│  ├─ users.gender                   ('male' or 'female')       │
-│  └─ users.allow_mahram_requests    (TRUE/FALSE)              │
+│  Columns:                                                       │
+│  ├─ users.gender                   ('male' or 'female')         │
+│  └─ users.allow_mahram_requests    (TRUE/FALSE)                 │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -132,20 +133,20 @@ FEMALE USER APPROVES MAHRAM REQUEST
 │
 ├─→ 3. Notification Renders as MahramNotification Component
 │   ├─ Shows requester avatar
-│   ├─ Shows relation dropdown (16 options)
+│   ├─ Shows relation dropdown
 │   ├─ Shows Approve/Reject buttons
 │   └─ All in prettified card
 │
 ├─→ 4. Female Selects Relation Type
 │   └─ Dropdown options:
-│       ├─ Father, Mother
-│       ├─ Brother, Sister
-│       ├─ Son, Daughter
-│       ├─ Grandfather, Grandmother
-│       ├─ Grandson, Granddaughter
-│       ├─ Uncle, Aunt
-│       ├─ Nephew, Niece
-│       ├─ Husband, Wife
+│       ├─ Father
+│       ├─ Brother
+│       ├─ Son
+│       ├─ Grandfather
+│       ├─ Grandson
+│       ├─ Uncle
+│       ├─ Nephew
+│       ├─ Husband
 │
 ├─→ 5. Female Clicks "Approve" Button
 │   │

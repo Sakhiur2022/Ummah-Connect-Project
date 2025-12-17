@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 1150" width="450" height="1150">
+  <defs>
+    <style>
+      .process-box { fill: #E3F2FD; stroke: #1976D2; stroke-width: 2; }
+      .analysis-box { fill: #FFF3E0; stroke: #F57C00; stroke-width: 2; }
+      .decision-box { fill: #F3E5F5; stroke: #7B1FA2; stroke-width: 2; }
+      .output-box { fill: #C8E6C9; stroke: #2E7D32; stroke-width: 2; }
+      .title { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #000; text-anchor: middle; }
+      .label { font-family: Arial, sans-serif; font-size: 10px; font-weight: bold; text-anchor: middle; fill: #000; }
+      .label-small { font-family: Arial, sans-serif; font-size: 8px; text-anchor: middle; fill: #333; }
+      .arrow { stroke: #333; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .stage-label { font-family: Arial, sans-serif; font-size: 11px; font-weight: bold; fill: #FFF; text-anchor: middle; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#333" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="450" height="1150" fill="#FAFAFA"/>
+
+  <!-- Title -->
+  <text x="225" y="30" class="title" style="font-size: 14px;">Workflow: Emotion Analyzer</text>
+
+  <!-- Input -->
+  <ellipse cx="225" cy="70" rx="80" ry="30" fill="#E0E0E0" stroke="#616161" stroke-width="2"/>
+  <text x="225" y="75" class="label">📥 Input</text>
+
+  <!-- Arrow -->
+  <path d="M 225 100 L 225 125" class="arrow"/>
+
+  <!-- STAGE 1: TEXT INPUT ANALYSIS -->
+  <rect x="40" y="125" width="370" height="35" fill="#FF9800" rx="5"/>
+  <text x="225" y="147" class="stage-label">STAGE 1: TEXT INPUT ANALYSIS</text>
+
+  <!-- Arrow -->
+  <path d="M 225 160 L 225 180" class="arrow"/>
+
+  <!-- User Message Box -->
+  <rect x="80" y="180" width="290" height="45" class="process-box" rx="6"/>
+  <text x="225" y="202" class="label">💬 User Message Input</text>
+  <text x="225" y="217" class="label-small">Text to be analyzed</text>
+
+  <!-- Arrow -->
+  <path d="M 225 225 L 225 245" class="arrow"/>
+
+  <!-- Scoring Analysis -->
+  <rect x="30" y="245" width="390" height="120" fill="none" stroke="#666" stroke-width="1.5" stroke-dasharray="5,5" rx="6"/>
+
+  <rect x="45" y="255" width="110" height="50" class="analysis-box" rx="5"/>
+  <text x="100" y="275" class="label" style="font-size: 9px;">🔍 Toxicity</text>
+  <text x="100" y="290" class="label-small">Score: 0.0-1.0</text>
+
+  <rect x="170" y="255" width="110" height="50" class="analysis-box" rx="5"/>
+  <text x="225" y="275" class="label" style="font-size: 9px;">⚠️ Harassment</text>
+  <text x="225" y="290" class="label-small">Score: 0.0-1.0</text>
+
+  <rect x="295" y="255" width="110" height="50" class="analysis-box" rx="5"/>
+  <text x="350" y="275" class="label" style="font-size: 9px;">🎯 Manipulation</text>
+  <text x="350" y="290" class="label-small">Score: 0.0-1.0</text>
+
+  <text x="50" y="330" class="label-small" style="text-anchor: start; font-size: 8px;">Scores aggregated from:</text>
+  <text x="50" y="342" class="label-small" style="text-anchor: start; font-size: 8px;">• Google Perspective API (toxicity, harassment)</text>
+  <text x="50" y="354" class="label-small" style="text-anchor: start; font-size: 8px;">• Custom heuristics (manipulation keywords)</text>
+
+  <!-- Arrow -->
+  <path d="M 225 365 L 225 385" class="arrow"/>
+
+  <!-- Distress Level Calculation -->
+  <rect x="70" y="385" width="310" height="65" class="decision-box" rx="6"/>
+  <text x="225" y="407" class="label">📊 calculateDistressLevel()</text>
+  <text x="225" y="422" class="label-small">Evaluates: toxicity, harassment, manipulation</text>
+  <text x="225" y="435" class="label-small">Output: 'low' | 'medium' | 'high'</text>
+
+  <!-- Arrow -->
+  <path d="M 225 450 L 225 470" class="arrow"/>
+
+  <!-- STAGE 2: PARTNER MATCHING -->
+  <rect x="40" y="470" width="370" height="35" fill="#9C27B0" rx="5"/>
+  <text x="225" y="492" class="stage-label">STAGE 2: PARTNER MATCHING</text>
+
+  <!-- Arrow -->
+  <path d="M 225 505 L 225 525" class="arrow"/>
+
+  <!-- Data Input -->
+  <rect x="50" y="525" width="180" height="60" class="process-box" rx="6"/>
+  <text x="140" y="547" class="label">👤 User Profile</text>
+  <text x="140" y="562" class="label-small">Preferences, traits</text>
+
+  <rect x="270" y="525" width="130" height="60" class="process-box" rx="6"/>
+  <text x="335" y="547" class="label">👥 Candidates</text>
+  <text x="335" y="562" class="label-small">Database query</text>
+
+  <!-- Arrow down -->
+  <path d="M 140 585 L 140 610" class="arrow"/>
+  <path d="M 335 585 L 335 610" class="arrow"/>
+
+  <!-- Decision Matrix -->
+  <rect x="60" y="610" width="330" height="75" class="analysis-box" rx="6"/>
+  <text x="225" y="632" class="label">📋 Decision Matrix Construction</text>
+  <text x="225" y="647" class="label-small">Alternatives: Candidates (rows)</text>
+  <text x="225" y="660" class="label-small">Criteria: Piety, Location, Education, Age (columns)</text>
+  <text x="225" y="673" class="label-small">Values: Candidate attributes normalized</text>
+
+  <!-- Arrow -->
+  <path d="M 225 685 L 225 705" class="arrow"/>
+
+  <!-- SAW-TOPSIS -->
+  <rect x="50" y="705" width="350" height="90" class="decision-box" rx="6"/>
+  <text x="225" y="727" class="label" style="font-size: 10px;">🧮 SAW-TOPSIS Ranking Algorithm</text>
+  <text x="225" y="742" class="label-small">1. Normalize matrix values [0,1]</text>
+  <text x="225" y="755" class="label-small">2. Apply user-defined weights (Piety > Edu > Age > Location)</text>
+  <text x="225" y="768" class="label-small">3. Compute TOPSIS distance scores</text>
+  <text x="225" y="781" class="label-small">4. Rank candidates by proximity to ideal solution</text>
+
+  <!-- Arrow -->
+  <path d="M 225 795 L 225 815" class="arrow"/>
+
+  <!-- Output: Recommendations -->
+  <rect x="40" y="815" width="370" height="75" class="output-box" rx="6"/>
+  <text x="225" y="837" class="label">✅ Transparent Recommendations</text>
+  <text x="225" y="852" class="label-small">Ranked partner list with scores</text>
+  <text x="225" y="865" class="label-small">Distress-aware safety flags</text>
+  <text x="225" y="878" class="label-small">Supportive resources (if needed)</text>
+
+  <!-- Arrow -->
+  <path d="M 225 890 L 225 910" class="arrow"/>
+
+  <!-- Final Output -->
+  <ellipse cx="225" cy="950" rx="80" ry="30" fill="#E0E0E0" stroke="#616161" stroke-width="2"/>
+  <text x="225" y="955" class="label">📤 Output</text>
+
+  <!-- Legend -->
+  <rect x="20" y="1000" width="410" height="130" fill="white" stroke="#999" stroke-width="1" rx="4"/>
+  <text x="35" y="1020" class="title" style="text-anchor: start; font-size: 11px;">Key Workflow Features:</text>
+  <text x="40" y="1040" class="label-small" style="text-anchor: start; font-size: 8px;">✓ Real-time safety analysis: Toxicity, harassment, manipulation scores combined into distress level</text>
+  <text x="40" y="1053" class="label-small" style="text-anchor: start; font-size: 8px;">✓ Multi-criteria decision making: SAW-TOPSIS ensures transparent, mathematically-sound rankings</text>
+  <text x="40" y="1066" class="label-small" style="text-anchor: start; font-size: 8px;">✓ Defense-in-depth: Distress flags trigger supportive recommendations and resources</text>
+  <text x="40" y="1079" class="label-small" style="text-anchor: start; font-size: 8px;">✓ User control: Weights and criteria customizable per user preferences</text>
+  <text x="40" y="1092" class="label-small" style="text-anchor: start; font-size: 8px;">✓ Privacy-first: All analysis happens server-side; client sees only sanitized, safe recommendations</text>
+  <text x="40" y="1105" class="label-small" style="text-anchor: start; font-size: 8px;">✓ Mahram-aware: RLS policies enforce faith-based access rules throughout the workflow</text>
+
+</svg>

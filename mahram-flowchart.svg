@@ -1,0 +1,183 @@
+<svg viewBox="0 0 1200 1400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .start-end { fill: #4CAF50; stroke: #2E7D32; stroke-width: 2; }
+      .process { fill: #2196F3; stroke: #1565C0; stroke-width: 2; }
+      .decision { fill: #FF9800; stroke: #E65100; stroke-width: 2; }
+      .notification { fill: #9C27B0; stroke: #6A1B9A; stroke-width: 2; }
+      .success { fill: #4CAF50; stroke: #2E7D32; stroke-width: 2; }
+      .failure { fill: #F44336; stroke: #C62828; stroke-width: 2; }
+      .text { font-family: Arial, sans-serif; font-size: 12px; fill: white; text-anchor: middle; }
+      .label { font-family: Arial, sans-serif; font-size: 11px; fill: #333; text-anchor: middle; }
+      .arrow { fill: none; stroke: #333; stroke-width: 2; marker-end: url(#arrowhead); }
+      .arrow-label { font-family: Arial, sans-serif; font-size: 10px; fill: #333; background: white; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#333" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="600" y="30" style="font-family: Arial, sans-serif; font-size: 24px; font-weight: bold; fill: #333; text-anchor: center;">Mahram System Workflow</text>
+
+  <!-- START -->
+  <circle cx="600" cy="70" r="25" class="start-end"/>
+  <text x="600" y="75" class="text" style="font-size: 14px; font-weight: bold;">START</text>
+
+  <!-- Arrow to Step 1 -->
+  <path d="M 600 95 L 600 120" class="arrow"/>
+
+  <!-- Step 1: Female mahram shares profile -->
+  <rect x="500" y="120" width="200" height="50" rx="5" class="process"/>
+  <text x="600" y="145" class="text">Female Mahram</text>
+  <text x="600" y="160" class="text">Shares Profile</text>
+
+  <!-- Arrow to Step 2 -->
+  <path d="M 600 170 L 600 200" class="arrow"/>
+
+  <!-- Step 2: Male mahram accesses link -->
+  <rect x="500" y="200" width="200" height="50" rx="5" class="process"/>
+  <text x="600" y="225" class="text">Male Mahram</text>
+  <text x="600" y="240" class="text">Accesses Link</text>
+
+  <!-- Arrow to Decision 1 -->
+  <path d="M 600 250 L 600 280" class="arrow"/>
+
+  <!-- Decision 1: Access Blocked? -->
+  <polygon points="600,280 670,330 600,380 530,330" class="decision"/>
+  <text x="600" y="330" class="text">Access</text>
+  <text x="600" y="345" class="text">Blocked?</text>
+
+  <!-- NO path (Access not blocked) - goes to success -->
+  <path d="M 670 330 L 800 330 L 800 920" class="arrow"/>
+  <text x="735" y="325" class="label" style="font-weight: bold;">NO</text>
+
+  <!-- YES path (Access blocked) -->
+  <path d="M 600 380 L 600 410" class="arrow"/>
+  <text x="620" y="400" class="label" style="font-weight: bold;">YES</text>
+
+  <!-- Step 3: Show Mahram Access Modal -->
+  <rect x="500" y="410" width="200" height="50" rx="5" class="process"/>
+  <text x="600" y="435" class="text">Show Mahram</text>
+  <text x="600" y="450" class="text">Access Modal</text>
+
+  <!-- Arrow to Step 4 -->
+  <path d="M 600 460 L 600 490" class="arrow"/>
+
+  <!-- Step 4: Send Mahram Request -->
+  <rect x="500" y="490" width="200" height="50" rx="5" class="process"/>
+  <text x="600" y="515" class="text">Male: Send</text>
+  <text x="600" y="530" class="text">Mahram Request</text>
+
+  <!-- Arrow to Notification 1 -->
+  <path d="M 600 540 L 600 570" class="arrow"/>
+
+  <!-- Notification 1: Female receives notification -->
+  <rect x="480" y="570" width="240" height="50" rx="5" class="notification"/>
+  <text x="600" y="595" class="text">Female Receives</text>
+  <text x="600" y="610" class="text">Mahram Request Notification</text>
+
+  <!-- Arrow to Step 5 -->
+  <path d="M 600 620 L 600 650" class="arrow"/>
+
+  <!-- Step 5: Select Relationship Type -->
+  <rect x="480" y="650" width="240" height="50" rx="5" class="process"/>
+  <text x="600" y="675" class="text">Female: Select</text>
+  <text x="600" y="690" class="text">Mahram Relationship Type</text>
+
+  <!-- Arrow to Decision 2 -->
+  <path d="M 600 700 L 600 730" class="arrow"/>
+
+  <!-- Decision 2: Accept or Reject? -->
+  <polygon points="600,730 680,790 600,850 520,790" class="decision"/>
+  <text x="600" y="795" class="text">Accept</text>
+  <text x="600" y="810" class="text">Request?</text>
+
+  <!-- ACCEPT path (right) -->
+  <path d="M 680 790 L 900 790 L 900 860" class="arrow"/>
+  <text x="790" y="785" class="label" style="font-weight: bold;">YES</text>
+
+  <!-- REJECT path (left) -->
+  <path d="M 520 790 L 300 790 L 300 860" class="arrow"/>
+  <text x="410" y="785" class="label" style="font-weight: bold;">NO</text>
+
+  <!-- ACCEPT BRANCH -->
+  <!-- Notification 2: Male receives acceptance -->
+  <rect x="800" y="860" width="200" height="50" rx="5" class="notification"/>
+  <text x="900" y="885" class="text">Male Receives</text>
+  <text x="900" y="900" class="text">Acceptance Notification</text>
+
+  <!-- Arrow to Step 6 -->
+  <path d="M 900 910 L 900 940" class="arrow"/>
+
+  <!-- Step 6: Update mahram lists -->
+  <rect x="800" y="940" width="200" height="50" rx="5" class="process"/>
+  <text x="900" y="965" class="text">Update Mahram</text>
+  <text x="900" y="980" class="text">Lists &amp; Access</text>
+
+  <!-- Arrow to Success -->
+  <path d="M 900 990 L 900 1020" class="arrow"/>
+
+  <!-- SUCCESS (Right End) -->
+  <circle cx="900" cy="1060" r="30" class="success"/>
+  <text x="900" y="1055" class="text" style="font-size: 11px;">✓ Access</text>
+  <text x="900" y="1068" class="text" style="font-size: 11px;">Granted</text>
+
+  <!-- REJECT BRANCH -->
+  <!-- Notification 3: Male blocked -->
+  <rect x="200" y="860" width="200" height="50" rx="5" class="failure"/>
+  <text x="300" y="885" class="text">Male: Blocked by</text>
+  <text x="300" y="900" class="text">Mahram Access Modal</text>
+
+  <!-- Arrow to Step 7 -->
+  <path d="M 300 910 L 300 940" class="arrow"/>
+
+  <!-- Step 7: Spam Prevention -->
+  <rect x="200" y="940" width="200" height="50" rx="5" class="process"/>
+  <text x="300" y="965" class="text">Spam Prevention:</text>
+  <text x="300" y="980" class="text">Block for 7 Days</text>
+
+  <!-- Arrow to Failure -->
+  <path d="M 300 990 L 300 1020" class="arrow"/>
+
+  <!-- FAILURE (Left End) -->
+  <circle cx="300" cy="1060" r="30" class="failure"/>
+  <text x="300" y="1055" class="text" style="font-size: 11px;">✗ Access</text>
+  <text x="300" y="1068" class="text" style="font-size: 11px;">Denied</text>
+
+  <!-- SUCCESS path from Decision 1 (NO - access not blocked) -->
+  <rect x="700" y="950" width="200" height="50" rx="5" class="success"/>
+  <text x="800" y="975" class="text">Already Mahram:</text>
+  <text x="800" y="990" class="text">Profile Accessible</text>
+
+  <!-- Arrow to Success -->
+  <path d="M 800 1000 L 800 1030" class="arrow"/>
+
+  <!-- SUCCESS (Center End) -->
+  <circle cx="800" cy="1070" r="30" class="success"/>
+  <text x="800" y="1065" class="text" style="font-size: 11px;">✓ Access</text>
+  <text x="800" y="1078" class="text" style="font-size: 11px;">Allowed</text>
+
+  <!-- Legend -->
+  <g>
+    <text x="50" y="1250" style="font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; fill: #333;">Legend:</text>
+    
+    <circle cx="50" cy="1280" r="12" class="start-end"/>
+    <text x="75" y="1285" style="font-family: Arial, sans-serif; font-size: 11px; fill: #333;">Start/End</text>
+    
+    <rect x="38" y="1305" width="24" height="24" rx="2" class="process"/>
+    <text x="75" y="1321" style="font-family: Arial, sans-serif; font-size: 11px; fill: #333;">Process</text>
+    
+    <polygon points="50,1345 60,1355 50,1365 40,1355" class="decision"/>
+    <text x="75" y="1357" style="font-family: Arial, sans-serif; font-size: 11px; fill: #333;">Decision</text>
+    
+    <rect x="38" y="1375" width="24" height="24" rx="2" class="notification"/>
+    <text x="75" y="1391" style="font-family: Arial, sans-serif; font-size: 11px; fill: #333;">Notification</text>
+
+    <circle cx="50" cy="1410" r="12" class="success"/>
+    <text x="75" y="1415" style="font-family: Arial, sans-serif; font-size: 11px; fill: #333;">Success</text>
+
+    <circle cx="50" cy="1430" r="12" class="failure"/>
+    <text x="75" y="1435" style="font-family: Arial, sans-serif; font-size: 11px; fill: #333;">Failure/Block</text>
+  </g>
+</svg>

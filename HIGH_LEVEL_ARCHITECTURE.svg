@@ -1,0 +1,151 @@
+<svg viewBox="0 0 1200 1600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .process-box { fill: #E3F2FD; stroke: #1976D2; stroke-width: 2; }
+      .analysis-box { fill: #FFF3E0; stroke: #F57C00; stroke-width: 2; }
+      .decision-box { fill: #F3E5F5; stroke: #7B1FA2; stroke-width: 2; }
+      .output-box { fill: #C8E6C9; stroke: #2E7D32; stroke-width: 2; }
+      .layer-title { font-size: 20px; font-weight: bold; fill: #000; }
+      .layer-subtitle { font-size: 14px; fill: #333; }
+      .component-text { font-size: 13px; fill: #000; font-weight: bold; }
+      .detail-text { font-size: 12px; fill: #333; }
+      .arrow { stroke: #333; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .arrow-label { font-size: 12px; fill: #666; font-style: italic; }
+      .section-label { font-size: 22px; font-weight: bold; fill: #000; }
+    </style>
+    
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#333" />
+    </marker>
+  </defs>
+  
+  <!-- White Background -->
+  <rect width="1200" height="1600" fill="#FFFFFF"/>
+
+  <!-- Title -->
+  <text x="600" y="40" class="section-label" text-anchor="middle">HIGH-LEVEL SYSTEM ARCHITECTURE</text>
+
+  <!-- LAYER 1: USER INTERFACE LAYER -->
+  <rect x="60" y="60" width="1080" height="80" class="process-box" rx="6"/>
+  <text x="600" y="85" class="layer-title" text-anchor="middle">USER INTERFACE LAYER</text>
+  <text x="600" y="105" class="layer-subtitle" text-anchor="middle">(Web Browser / Client)</text>
+
+  <!-- Arrow 1 down with label -->
+  <path d="M 600 140 L 600 170" class="arrow"/>
+  <text x="630" y="158" class="arrow-label">HTTP/HTTPS Requests</text>
+
+  <!-- LAYER 2: PRESENTATION LAYER -->
+  <rect x="60" y="170" width="1080" height="200" class="output-box" rx="6"/>
+  <text x="600" y="195" class="layer-title" text-anchor="middle">PRESENTATION LAYER</text>
+  <text x="600" y="215" class="layer-subtitle" text-anchor="middle">(Next.js Frontend - React/TypeScript)</text>
+
+  <!-- Feature Components - inline boxes -->
+  <rect x="90" y="235" width="170" height="50" class="process-box" rx="4" stroke-width="1.5"/>
+  <text x="175" y="250" class="component-text" text-anchor="middle" font-size="12">Dashboard</text>
+  <text x="175" y="267" class="detail-text" text-anchor="middle" font-size="11">Main Feed</text>
+
+  <rect x="280" y="235" width="170" height="50" class="process-box" rx="4" stroke-width="1.5"/>
+  <text x="365" y="250" class="component-text" text-anchor="middle" font-size="12">Messenger</text>
+  <text x="365" y="267" class="detail-text" text-anchor="middle" font-size="11">Chat Interface</text>
+
+  <rect x="470" y="235" width="170" height="50" class="process-box" rx="4" stroke-width="1.5"/>
+  <text x="555" y="250" class="component-text" text-anchor="middle" font-size="12">Posts</text>
+  <text x="555" y="267" class="detail-text" text-anchor="middle" font-size="11">Create &amp; Engage</text>
+
+  <rect x="660" y="235" width="170" height="50" class="process-box" rx="4" stroke-width="1.5"/>
+  <text x="745" y="250" class="component-text" text-anchor="middle" font-size="12">Profile</text>
+  <text x="745" y="267" class="detail-text" text-anchor="middle" font-size="11">User Information</text>
+
+  <rect x="850" y="235" width="170" height="50" class="process-box" rx="4" stroke-width="1.5"/>
+  <text x="935" y="250" class="component-text" text-anchor="middle" font-size="12">Settings</text>
+  <text x="935" y="267" class="detail-text" text-anchor="middle" font-size="11">Preferences</text>
+
+  <!-- Layer 2 details -->
+  <text x="90" y="310" class="detail-text" font-size="11">• UI Components (Shadcn + Tailwind CSS)</text>
+  <text x="90" y="325" class="detail-text" font-size="11">• Framer Motion Animations</text>
+  <text x="90" y="340" class="detail-text" font-size="11">• Theme Provider (Light/Dark Mode)</text>
+
+  <!-- Arrow 2 -->
+  <path d="M 600 370 L 600 400" class="arrow"/>
+  <text x="640" y="388" class="arrow-label">API Calls</text>
+
+  <!-- LAYER 3: APPLICATION LAYER -->
+  <rect x="60" y="400" width="1080" height="220" class="decision-box" rx="6"/>
+  <text x="600" y="425" class="layer-title" text-anchor="middle">APPLICATION LAYER</text>
+  <text x="600" y="445" class="layer-subtitle" text-anchor="middle">(Next.js Server &amp; Edge Middleware)</text>
+
+  <!-- Edge Middleware Box -->
+  <rect x="90" y="465" width="1020" height="80" class="process-box" rx="4" stroke-width="1.5"/>
+  <text x="110" y="485" class="component-text" font-size="12">Edge Middleware</text>
+  <text x="110" y="502" class="detail-text" font-size="11">• Session Management (JWT/Cookies) • Route Guards &amp; Authentication</text>
+  <text x="110" y="517" class="detail-text" font-size="11">• Security Headers</text>
+
+  <!-- API Routes Box -->
+  <rect x="90" y="555" width="1020" height="55" class="process-box" rx="4" stroke-width="1.5"/>
+  <text x="110" y="573" class="component-text" font-size="12">API Routes (/app/api/*)</text>
+  <text x="110" y="590" class="detail-text" font-size="11">• User Authentication • Friend Management • Post Operations • Messenger &amp; Chat • Notification Management</text>
+
+  <!-- Arrow 3 -->
+  <path d="M 600 620 L 600 650" class="arrow"/>
+  <text x="650" y="638" class="arrow-label">SQL Queries / RPC Calls</text>
+
+  <!-- LAYER 4: DATA ACCESS LAYER -->
+  <rect x="60" y="650" width="1080" height="100" class="process-box" rx="6"/>
+  <text x="600" y="675" class="layer-title" text-anchor="middle">DATA ACCESS LAYER</text>
+  <text x="600" y="695" class="layer-subtitle" text-anchor="middle">(Supabase Client SDK)</text>
+  <text x="90" y="720" class="detail-text" font-size="11">• PostgreSQL Query Builder • Real-time Subscriptions • Row-Level Security (RLS)</text>
+
+  <!-- Arrow 4 -->
+  <path d="M 600 750 L 600 780" class="arrow"/>
+  <text x="660" y="768" class="arrow-label">Authenticated Requests</text>
+
+  <!-- LAYER 5: BACKEND SERVICES -->
+  <rect x="60" y="780" width="1080" height="280" class="output-box" rx="6"/>
+  <text x="600" y="805" class="layer-title" text-anchor="middle">BACKEND SERVICES</text>
+  <text x="600" y="825" class="layer-subtitle" text-anchor="middle">(Supabase Cloud Platform)</text>
+
+  <!-- Authentication and Database side by side -->
+  <rect x="90" y="845" width="480" height="100" class="process-box" rx="4" stroke-width="1.5"/>
+  <text x="330" y="865" class="component-text" text-anchor="middle" font-size="12">Authentication</text>
+  <text x="110" y="882" class="detail-text" font-size="11">• Email/Password • JWT Tokens</text>
+  <text x="110" y="896" class="detail-text" font-size="11">• Session Storage • MFA Support</text>
+
+  <rect x="630" y="845" width="480" height="100" class="analysis-box" rx="4" stroke-width="1.5"/>
+  <text x="870" y="865" class="component-text" text-anchor="middle" font-size="12">PostgreSQL Database</text>
+  <text x="650" y="882" class="detail-text" font-size="11">• Users Table • Posts Table</text>
+  <text x="650" y="896" class="detail-text" font-size="11">• Profiles Table • Friends Relationships</text>
+
+  <!-- Data Business Logic Box -->
+  <rect x="90" y="955" width="1020" height="95" class="decision-box" rx="4" stroke-width="1.5"/>
+  <text x="600" y="975" class="component-text" text-anchor="middle" font-size="12">Data Business Logic (PL/pgSQL Functions)</text>
+  <text x="110" y="992" class="detail-text" font-size="11">• Friend System RPC Functions • Notification Triggers • Mahram Access Management</text>
+  <text x="110" y="1006" class="detail-text" font-size="11">• Post Engagement Counters • Ibadah Points Calculation • User Role Management</text>
+
+  <!-- Arrow 5 -->
+  <path d="M 600 1060 L 600 1090" class="arrow"/>
+  <text x="650" y="1078" class="arrow-label">HTTPS Requests</text>
+
+  <!-- LAYER 6: EXTERNAL SERVICES -->
+  <rect x="60" y="1090" width="1080" height="120" class="analysis-box" rx="6"/>
+  <text x="600" y="1115" class="layer-title" text-anchor="middle">EXTERNAL SERVICES</text>
+  
+  <rect x="260" y="1140" width="680" height="55" class="process-box" rx="4"/>
+  <text x="600" y="1160" class="component-text" text-anchor="middle" font-size="12">Google Perspective API</text>
+  <text x="600" y="1177" class="detail-text" text-anchor="middle" font-size="11">(Content Safety &amp; Toxicity Analysis)</text>
+
+  <!-- Final deployment section -->
+  <rect x="60" y="1220" width="1080" height="120" style="fill:#F5F5F5;stroke:#999;stroke-width:2;" rx="6"/>
+  <text x="600" y="1245" class="layer-title" text-anchor="middle" font-size="18">🚀 DEPLOYMENT INFRASTRUCTURE</text>
+  
+  <rect x="100" y="1265" width="300" height="50" class="process-box" rx="4" stroke-width="1.5"/>
+  <text x="250" y="1283" class="component-text" text-anchor="middle" font-size="11">Vercel Edge Network</text>
+  <text x="250" y="1300" class="detail-text" text-anchor="middle" font-size="10">Routing &amp; Middleware</text>
+
+  <rect x="450" y="1265" width="300" height="50" class="process-box" rx="4" stroke-width="1.5"/>
+  <text x="600" y="1283" class="component-text" text-anchor="middle" font-size="11">Vercel Serverless</text>
+  <text x="600" y="1300" class="detail-text" text-anchor="middle" font-size="10">API Routes &amp; Functions</text>
+
+  <rect x="800" y="1265" width="280" height="50" class="decision-box" rx="4" stroke-width="1.5"/>
+  <text x="940" y="1283" class="component-text" text-anchor="middle" font-size="11">Supabase Cloud</text>
+  <text x="940" y="1300" class="detail-text" text-anchor="middle" font-size="10">Database &amp; Auth</text>
+</svg>

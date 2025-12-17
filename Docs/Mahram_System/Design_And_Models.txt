@@ -1,0 +1,60 @@
+Design/Model (Show a simplified block diagram representation with the major components)
+
+Simplified System Block Diagram
+
+Overview: The platform consists of a Next.js client with edge middleware, a server/API layer, a Supabase backend (Auth + Postgres with RLS and PL/pgSQL), and an external safety analysis API. Privacy is enforced at the data tier via Mahram-aware policies; safety analysis is performed server-side via a latency-bounded pipeline.
+
+ASCII Block Diagram (Major Components)
+
+	+---------------------+
+	|     User (Web)      |
+	+----------+----------+
+						 |
+						 v
+	+-----------------------------+        +-----------------------------+
+	| Next.js App (React/TS, UI)  |  --->  | Edge Middleware (auth/session)
+	| App Router, Themed UI       |  <---  | cookies, route guards        |
+	+----------+----------+-------+        +---------------+--------------+
+						 | UI actions                                 |
+						 v                                            |
+	+-----------------------------+                         |
+	| Feature Modules             |                         |
+	| Profile | Messenger |       |                         |
+	| Chatbot | Posts | Settings  |                         |
+	+----------+----------+-------+                         |
+						 |                                          (sessions)
+						 v                                            |
+	+-----------------------------+        +----------------v------------+
+	| Server/API Layer            | <----> | Supabase Auth (JWT/session) |
+	| Next.js API routes          |        +-----------------------------+
+	+----------+----------+-------+
+						 |
+						 v
+	+-----------------------------+        +-----------------------------+
+	| Supabase Postgres (DB)      | <----> | External Safety API         |
+	| RLS Policies (Mahram)       |        | Google Perspective          |
+	| PL/pgSQL: Friends, Notifs,  |        +-----------------------------+
+	+-----------------------------+
+
+	[Deployment: Vercel (free tier) hosting; Supabase (free tier) backend]
+
+Mermaid (for Markdown-compatible renderers)
+
+```mermaid
+flowchart TB
+	U[User Browser] --> C[Next.js App (React/TypeScript, App Router)]
+	C --> M[Edge Middleware (auth/session)]
+	C --> FM[Feature Modules: Profile | Messenger | Chatbot | Posts | Settings]
+	FM --> S[Server/API Layer (Next API routes)]
+	S --> Auth[Supabase Auth (sessions/JWT)]
+	S --> DB[(Supabase Postgres)]
+	DB --> RLS[RLS Policies + PL/pgSQL: Mahram, Friends, Notifications, Ibadah Points]
+	S --> P[External Safety API (Google Perspective)]
+	V[Vercel (free tier)] -. deploy .- C
+```
+
+Notes
+- Privacy enforcement is performed at the database layer via RLS and Mahram-aware policies; UI scopes reflect, but do not replace, data-tier guarantees.
+- Safety analysis runs server-side (API route) with rate limiting and timeouts; the client receives categorized guidance rather than raw scores.
+- Domain workflows (friend graph, notifications, incentives) are implemented via PL/pgSQL functions/RPCs and triggers.
+
