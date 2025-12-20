@@ -59,6 +59,7 @@ export function PostCard({
   const [media, setMedia] = useState<PostMedia[]>([]);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isContentExpanded, setIsContentExpanded] = useState(false);
   const supabase = createClient();
 
   // Theme-aware classes
@@ -418,10 +419,18 @@ export function PostCard({
         ) : (
           <>
             <Link href={`/post/${postId}`}>
-              <p className={`text-sm leading-relaxed line-clamp-3 transition-colors ${theme === "light" ? "text-gray-800 hover:text-amber-700" : "text-cyan-50 hover:text-cyan-200"}`}>
+              <p className={`text-sm leading-relaxed ${isContentExpanded ? "" : "line-clamp-3"} transition-colors ${theme === "light" ? "text-gray-800 hover:text-amber-700" : "text-cyan-50 hover:text-cyan-200"}`}>
                 {content}
               </p>
             </Link>
+            {content.split("\n").length > 3 && (
+              <button
+                onClick={() => setIsContentExpanded(!isContentExpanded)}
+                className={`text-sm font-medium mt-2 transition-colors ${accentClass} ${accentHoverClass}`}
+              >
+                {isContentExpanded ? "See less" : "See more"}
+              </button>
+            )}
             <p className={`text-xs mt-2 ${mutedTextClass}`}>{formatDate(createdAt)}</p>
           </>
         )}
