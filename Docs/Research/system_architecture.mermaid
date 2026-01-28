@@ -1,0 +1,48 @@
+graph TD
+    %% Define Color Palette
+    %% #FF9899 - Light Red (External Services)
+    %% #FFCB99 - Light Orange (Client)
+    %% #CDFFCC - Light Green (Presentation)
+    %% #CCCCFE - Light Blue (Core Logic)
+    %% #FF99FF - Light Magenta (Data)
+
+    classDef client fill:#FFCB99,stroke:#333,stroke-width:1px,color:black;
+    classDef presentation fill:#CDFFCC,stroke:#333,stroke-width:1px,color:black;
+    classDef logic fill:#CCCCFE,stroke:#333,stroke-width:1px,color:black;
+    classDef data fill:#FF99FF,stroke:#333,stroke-width:1px,color:black;
+    classDef external fill:#FF9899,stroke:#333,stroke-width:1px,color:black;
+
+    subgraph Client [Client Side]
+        User[User / Web Client]:::client
+    end
+
+    subgraph System ["Ummah Connect<br/>Platform"]
+        direction TB
+        UI[Next.js UI & Dashboard]:::presentation
+        API[Secure API & Middleware]:::logic
+        
+        subgraph Core_Modules [Core Logic Modules]
+            Mahram[Mahram Privacy System]:::logic
+            Safety[Safety & Toxicity AI]:::logic
+        end
+    end
+
+    Google[Google Perspective API]:::external
+    
+    subgraph Data [Data Layer]
+        DB[(Supabase: Auth & DB)]:::data
+    end
+
+    %% Relationships
+    User -->|HTTPS Request| UI
+    UI -->|Server Actions| API
+    
+    API -->|Enforce Access| Mahram
+    API -->|Analyze Content| Safety
+    
+    Safety -.->|External Check| Google
+    
+    API -->|Read/Write| DB
+    Mahram -.->|Verify Relations| DB
+    
+    linkStyle default stroke:#333,stroke-width:2px;
